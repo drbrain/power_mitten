@@ -1,0 +1,95 @@
+require 'curses'
+require 'optparse'
+require 'ringy_dingy'
+require 'thread'
+require 'uri'
+
+require 'att/cloud_gauntlet/node'
+
+class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
+
+  attr_reader :services
+
+  def self.run argv = ARGV
+    options = parse_args argv
+
+    options.merge! load_configuration options[:configuration]
+
+    control = new options
+
+    control.run
+  end
+
+  def initialize options = {}
+    super
+
+    @services = Hash.new do |h, class_name|
+      h[class_name] = {} # class_name => { name: instance }
+    end
+    @services_mutex = Mutex.new
+  end
+
+  ##
+  # Adds a new Mutex with +name+ to the control node.  Returns +true+ if the
+  # Mutex was created, +false+ if it already exists.
+
+  def add_mutex name
+    add_service Mutex, name
+  end
+
+  ##
+  # Adds a new Queue with +name+ to the control node.  Returns +true+ if the
+  # Queue was created, +false+ if it already exists.
+
+  def add_queue name
+    add_service Queue, name
+  end
+
+  ##
+  # Adds service +klass+ with +name+ to the control node.  Returns +true+ if
+  # a named instance of +klass+ was added, +false+ if it already exists.
+
+  def add_service klass, name
+    class_name = klass.name
+
+    @services_mutex.synchronize do
+      instance = @services[class_name][name]
+
+      return false if instance
+
+      instance = klass.new
+
+      service = RingyDingy.new instance, name
+      service.check_every = 2
+      service.run :first_register
+
+      @services[class_name][name] = service
+
+      true
+    end
+  end
+
+  ##
+  # Registers +service+ with +name+ to the control node.
+
+  def register_service klass, service, name
+    @services_mutex.synchronize do
+      @services[klass.name][name] = service
+    end
+  end
+
+  def run
+    control_service = service :control, %w[localhost], 1
+
+    DRb.thread.join
+  end
+
+  ##
+  # Returns the current time.
+
+  def ping
+    Time.now
+  end
+
+end
+

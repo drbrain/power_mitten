@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'att/cloud_gauntlet/gem_checksummer'
+
+ATT::CloudGauntlet::GemChecksummer.run
+

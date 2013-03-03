@@ -1,0 +1,306 @@
+require 'att/cloud_gauntlet'
+require 'att/swift'
+require 'fog'
+require 'optparse'
+require 'psych'
+require 'ringy_dingy'
+require 'syslog'
+
+class ATT::CloudGauntlet::Node
+
+  attr_reader :swift
+
+  def self.load_configuration file
+    yaml          = File.read file
+    configuration = Psych.load yaml
+    options       = {}
+
+    %w[
+      openstack_api_key
+      openstack_auth_url
+      openstack_tenant
+      openstack_username
+
+      swift_uri
+      swift_username
+      swift_key
+    ].each do |required_key|
+      value = configuration[required_key]
+      abort "missing #{required_key} in #{file}" unless value
+
+      options[required_key.intern] = value
+    end
+
+    options[:swift_uri] = URI options[:swift_uri]
+
+    options
+  end
+
+  def self.parse_args argv
+    options = {
+      configuration: File.expand_path('~/.gauntlet_control'),
+      daemon:        false,
+      workers:       0,
+    }
+
+    OptionParser.accept File do |value|
+      raise OptionParser::InvalidArgument, value unless
+        File.file?(value) && File.readable?(value)
+    end
+
+    op = OptionParser.new do |opt|
+      opt.on('--configuration FILE', File) do |file|
+        options[:configuration] = file
+      end
+
+      opt.on('--daemon') do
+        options[:daemon] = true
+      end
+
+      opt.on('--localhost') do
+        options[:localhost] = true
+      end
+
+      opt.on('--once') do
+        options[:once] = true
+      end
+
+      opt.on('--workers COUNT', Integer) do |count|
+        options[:workers] = count
+      end
+    end
+
+    op.parse argv
+
+    abort op.to_s if options[:configuration].empty?
+
+    if options[:daemon] then
+      require 'webrick/server'
+
+      WEBrick::Daemon.start
+    end
+
+    options
+  end
+
+  def self.prefork options
+    require 'servolux'
+
+    workers = options[:workers]
+    klass   = self
+
+    pool = Servolux::Prefork.new(max_workers: workers, min_workers: 0) do
+      begin
+        klass.new(options)._run
+      rescue Exception => e
+        open '/dev/stderr', 'w' do |io| io.puts e.message end
+      end
+    end
+
+    pool.start workers
+
+    trap 'INT'  do pool.signal 'KILL' end
+    trap 'TERM' do pool.signal 'KILL' end
+
+    Process.waitall
+  end
+
+  def self.run argv = ARGV
+    options = parse_args argv
+
+    options.merge! load_configuration options[:configuration]
+
+    if options[:workers].zero? then
+      new(options)._run
+    else
+      prefork options
+    end
+  end
+
+  def initialize options = {}
+    @api_key  = options[:openstack_api_key]
+    @auth_url = options[:openstack_auth_url]
+    @tenant   = options[:openstack_tenant]
+    @username = options[:openstack_username]
+
+    @swift_credentials =
+      [options[:swift_uri], options[:swift_username], options[:swift_key]]
+
+    @daemon    = options[:daemon]
+    @localhost = options[:localhost]
+    @once      = options[:once]
+
+    @fog     = nil
+    @control = nil
+    @service = nil
+    @swift   = nil
+    @syslog  =
+      if Syslog.opened? then
+        Syslog.reopen self.class.name, Syslog::LOG_PID, Syslog::LOG_DAEMON
+      else
+        Syslog.open   self.class.name, Syslog::LOG_PID, Syslog::LOG_DAEMON
+      end
+
+    notice 'starting'
+  end
+
+  def connect_swift
+    return @swift if @swift
+
+    @swift = ATT::Swift.new(*@swift_credentials)
+
+    notice 'connected to swift'
+
+    @swift
+  end
+
+  def control_hosts
+    return %w[127.0.0.1] if @localhost
+
+    return @control_hosts if @control_hosts
+
+    control_hosts = fog.servers.select do |vm|
+      vm.name =~ /gauntlet_control/
+    end.uniq
+
+    return [] unless control_hosts
+
+    addresses = control_hosts.map do |vm|
+      vm.addresses.values.flatten.map do |address|
+        next unless address['addr'] =~ /^10\./
+
+        address['addr']
+      end
+    end.flatten.compact.uniq
+
+    info "found control hosts #{addresses.join ', '}"
+
+    @control_hosts = addresses
+  end
+
+  def error message
+    @syslog.err '%s', message
+  end
+
+  def find_control
+    hosts = control_hosts
+
+    @control = RingyDingy.find :control, hosts
+
+    hosts
+  rescue
+    notice "unable to find control at #{hosts.join ', '}"
+    raise if @once
+    sleep 2
+
+    retry
+  end
+
+  def fog
+    @fog ||= Fog::Compute.new \
+      provider: :openstack,
+      openstack_api_key:  @api_key,
+      openstack_auth_url: @auth_url,
+      openstack_tenant:   @tenant,
+      openstack_username: @username
+  end
+
+  def get_control
+    @control_hosts = nil
+
+    hosts = find_control
+
+    notice "found control at #{@control.__drburi}"
+
+    @service = service local_name, hosts
+
+    @control.register_service self.class, @service, local_name
+
+    @control
+  end
+
+  def get_mutex name
+    @control.add_mutex name
+
+    RingyDingy.find name, control_hosts
+  end
+
+  def get_queue name
+    @control.add_queue name
+
+    RingyDingy.find name, control_hosts
+  end
+
+  def info message
+    @syslog.info '%s', message
+  end
+
+  ##
+  # From http://coderrr.wordpress.com/2008/05/28/get-your-local-ip-address/
+
+  def local_ip
+    @local_ip ||= UDPSocket.open do |s|
+      s.connect '192.0.2.1', 1
+      s.addr.last
+    end
+  end
+
+  ##
+  # Returns the name of this node according to OpenStack
+
+  def local_name
+    local_vm = fog.servers.find do |vm|
+      addresses = vm.addresses.values.flatten
+
+      next unless addresses
+
+      addresses.any? do |address|
+        address['addr'] == local_ip
+      end
+    end
+
+    return local_vm.name if local_vm
+
+    self.class.name.split('::', -1).last.downcase
+  end
+
+  def notice message
+    @syslog.notice '%s', message
+  end
+
+  def _run
+    get_control
+
+    run
+  rescue DRb::DRbConnError => e
+    raise if @once
+    notice "lost connection: #{e.message}"
+
+    @service.stop
+    @service = nil
+
+    sleep 10
+
+    retry
+  rescue ThreadError
+    return # queue empty
+  rescue Exception => e
+    error "#{e.message} (#{e.class}) - #{e.backtrace.first}"
+
+    raise
+  end
+
+  def service name, broadcast, check_every = 10
+    service = RingyDingy.new self, name, nil, broadcast
+    service.check_every = check_every
+    service.run
+  end
+
+  def warn message
+    super message
+
+    @syslog.warning '%s', message
+  end
+
+end
+

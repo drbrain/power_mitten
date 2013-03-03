@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'att/cloud_gauntlet/gem_downloader'
+
+ATT::CloudGauntlet::GemDownloader.run
+
