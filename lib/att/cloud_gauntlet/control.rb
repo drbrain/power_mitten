@@ -1,12 +1,10 @@
-require 'curses'
-require 'optparse'
-require 'ringy_dingy'
 require 'thread'
-require 'uri'
-
-require 'att/cloud_gauntlet/node'
 
 class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
+
+  config = ATT::CloudGauntlet::Configuration.new 'control'
+  config.services = %w[gauntlet_ring_server gauntlet_control]
+  config.maximum_workers = 1
 
   attr_reader :services
 

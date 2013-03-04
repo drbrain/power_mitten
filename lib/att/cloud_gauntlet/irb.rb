@@ -1,8 +1,10 @@
-require 'att/cloud_gauntlet/node'
 require 'irb'
 require 'pp'
 
 class ATT::CloudGauntlet::Irb < ATT::CloudGauntlet::Node
+
+  config = ATT::CloudGauntlet::Configuration.new 'irb'
+  config.maximum_workers = 1
 
   def run
     ARGV.clear

@@ -1,9 +1,10 @@
-require 'att/cloud_gauntlet/node'
-
 require 'net/http/persistent'
-require 'uri'
 
 class ATT::CloudGauntlet::GemDownloader < ATT::CloudGauntlet::Node
+
+  config = ATT::CloudGauntlet::Configuration.new 'gem_downloader'
+  config.services << 'gem_downloader'
+  config.cpu_multiplier = 8
 
   def initialize options
     super options

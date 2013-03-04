@@ -1,5 +1,3 @@
-require 'att/cloud_gauntlet/node'
-
 require 'digest/md5'
 require 'rbconfig'
 require 'rubygems/installer'
@@ -11,6 +9,10 @@ gem 'rdoc'
 require 'rdoc'
 
 class ATT::CloudGauntlet::RDocer < ATT::CloudGauntlet::Node
+
+  config = ATT::CloudGauntlet::Configuration.new 'rdocer'
+  config.services << 'rdocer'
+  config.cpu_multiplier = 1.5
 
   attr_reader :gem_queue
   attr_reader :rdoc_result_queue

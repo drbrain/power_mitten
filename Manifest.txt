@@ -8,6 +8,8 @@ bin/checksummer
 bin/gauntlet_collect
 bin/gauntlet_console
 bin/gauntlet_control
+bin/gauntlet_irb
+bin/gauntlet_ring_server
 bin/gem_downloader
 bin/rdocer
 bin/startup
@@ -16,11 +18,15 @@ failed.rb
 lib/att/cloud_gauntlet.rb
 lib/att/cloud_gauntlet/checksum_dump.rb
 lib/att/cloud_gauntlet/collect.rb
+lib/att/cloud_gauntlet/configuration.rb
 lib/att/cloud_gauntlet/console.rb
 lib/att/cloud_gauntlet/control.rb
 lib/att/cloud_gauntlet/gem_checksummer.rb
 lib/att/cloud_gauntlet/gem_downloader.rb
+lib/att/cloud_gauntlet/irb.rb
 lib/att/cloud_gauntlet/node.rb
 lib/att/cloud_gauntlet/rdocer.rb
+lib/att/cloud_gauntlet/ring_server.rb
 lib/att/cloud_gauntlet/startup.rb
+lib/resolv/open_stack.rb
 size.rb

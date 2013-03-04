@@ -1,7 +1,4 @@
-require 'att/cloud_gauntlet/node'
 require 'thread'
-
-Thread.abort_on_exception = true
 
 class ATT::CloudGauntlet::Collect < ATT::CloudGauntlet::Node
 

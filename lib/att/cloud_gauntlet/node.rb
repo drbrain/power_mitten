@@ -1,8 +1,8 @@
-require 'att/cloud_gauntlet'
 require 'att/swift'
 require 'fog'
 require 'optparse'
 require 'psych'
+require 'resolv/open_stack'
 require 'ringy_dingy'
 require 'syslog'
 
@@ -10,7 +10,7 @@ class ATT::CloudGauntlet::Node
 
   attr_reader :swift
 
-  def self.load_configuration file
+  def self.load_configuration file = File.expand_path('~/.gauntlet_control')
     yaml          = File.read file
     configuration = Psych.load yaml
     options       = {}
@@ -141,6 +141,15 @@ class ATT::CloudGauntlet::Node
         Syslog.open   self.class.name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       end
 
+    resolver = Resolv.new [
+      Resolv::Hosts.new,
+      Resolv::DNS.new,
+      Resolv::OpenStack.new(fog)
+    ]
+
+    Resolv.send :remove_const, :DefaultResolver
+    Resolv.send :const_set, :DefaultResolver, resolver
+
     notice 'starting'
   end
 
@@ -167,7 +176,7 @@ class ATT::CloudGauntlet::Node
 
     addresses = control_hosts.map do |vm|
       vm.addresses.values.flatten.map do |address|
-        next unless address['addr'] =~ /^10\./
+        next unless address['addr'] =~ /\A10\./
 
         address['addr']
       end
@@ -188,8 +197,8 @@ class ATT::CloudGauntlet::Node
     @control = RingyDingy.find :control, hosts
 
     hosts
-  rescue
-    notice "unable to find control at #{hosts.join ', '}"
+  rescue => e
+    notice "unable to connect to control at #{hosts.join ', '}: #{e.message} (#{e.class})"
     raise if @once
     sleep 2
 

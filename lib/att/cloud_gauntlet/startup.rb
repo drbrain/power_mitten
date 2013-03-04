@@ -1,6 +1,3 @@
-require 'att/cloud_gauntlet/node'
-require 'socket'
-
 class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
 
   def self.run argv = ARGV
@@ -24,24 +21,19 @@ class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
 
     notice "this is a #{name} node"
 
-    commands = case name
-               when /gauntlet_control/ then %w[ring_server gauntlet_control]
-               when /gem_downloader/   then %w[gem_downloader]
-               when /checksummer/      then %w[checksummer]
-               when /rdocer/           then %w[rdocer]
-               end
+    services = ATT::CloudGauntlet::Configuration.services_for name
 
-    notice "registering #{commands.join ', '}"
+    notice "registering #{services.join ', '}"
 
-    commands.each do |command|
-      system 'sudo', '/usr/sbin/update-rc.d', '-f', command, 'remove'
-      system 'sudo', '/usr/sbin/update-rc.d', '-f', command, 'defaults', '99', '1'
-      system 'sudo', "/etc/init.d/#{command}", 'start'
+    services.each do |service|
+      system 'sudo', '/usr/sbin/update-rc.d', '-f', service, 'remove'
+      system 'sudo', '/usr/sbin/update-rc.d', '-f', service, 'defaults', '99', '1'
+      system 'sudo', "/etc/init.d/#{service}", 'start'
 
       if $? then
-        notice "#{command} started"
+        notice "#{service} started"
       else
-        notice "#{command} did not start"
+        notice "#{service} did not start"
       end
     end
   end

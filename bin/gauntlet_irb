@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'att/cloud_gauntlet/irb'
+require 'att/cloud_gauntlet'
 
 ATT::CloudGauntlet::Irb.run
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'att/cloud_gauntlet/checksum_dump'
+require 'att/cloud_gauntlet'
 
 ATT::CloudGauntlet::ChecksumDump.run
 

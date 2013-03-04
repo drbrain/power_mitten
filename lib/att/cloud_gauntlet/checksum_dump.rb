@@ -1,12 +1,7 @@
-require 'att/cloud_gauntlet/node'
-
-require 'digest/md5'
-require 'digest/sha2'
-
-gem 'rdoc'
-require 'rdoc'
-
 class ATT::CloudGauntlet::ChecksumDump < ATT::CloudGauntlet::Node
+
+  config = ATT::CloudGauntlet::Configuration.new 'checksum_dump'
+  config.maximum_workers = 1
 
   attr_reader :md5_queue
   attr_reader :sha512_queue

@@ -1,0 +1,6 @@
+#!/bin/env ruby
+
+require 'att/cloud_gauntlet'
+
+ATT::CloudGauntlet::RingServer.run
+

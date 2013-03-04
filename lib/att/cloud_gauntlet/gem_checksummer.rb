@@ -1,12 +1,11 @@
-require 'att/cloud_gauntlet/node'
-
 require 'digest/md5'
 require 'digest/sha2'
 
-gem 'rdoc'
-require 'rdoc'
-
 class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
+
+  config = ATT::CloudGauntlet::Configuration.new 'gem_checksummer'
+  config.services << 'gem_checksummer'
+  config.cpu_multiplier = 8
 
   attr_reader :gem_queue
   attr_reader :gem_checksum_queue
@@ -15,7 +14,6 @@ class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
     super options
 
     @gem_queue         = nil
-    @rdoc_result_queue = nil
 
     @gems_container   = 'gems'
   end
