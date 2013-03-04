@@ -78,11 +78,12 @@ class ATT::CloudGauntlet::GemDownloader < ATT::CloudGauntlet::Node
   def get_gem_names
     fetcher = Gem::SpecFetcher.fetcher
 
-    dep = Gem::Dependency.new(//, Gem::Requirement.default)
+    list, = fetcher.available_specs(:complete)
 
-    list = fetcher.find_matching dep, true, false, false
+    tuples = list.values.first
 
-    list.map do |tuple,|
+    tuples.map do |tuple,|
+      tuple = tuple.to_a
       case tuple.last
       when Gem::Platform::RUBY then
         tuple[0, 2]
