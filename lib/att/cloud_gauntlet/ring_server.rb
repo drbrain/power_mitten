@@ -2,7 +2,7 @@ require 'ringy_dingy/ring_server'
 
 class ATT::CloudGauntlet::RingServer < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'ring_server'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.services = %w[gauntlet_ring_server]
   config.maximum_workers = 1
 

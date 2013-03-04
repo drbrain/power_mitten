@@ -2,7 +2,7 @@ require 'curses'
 
 class ATT::CloudGauntlet::Console < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'gauntlet_console'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.maximum_workers = 1
 
   def initialize options

@@ -3,7 +3,7 @@ require 'pp'
 
 class ATT::CloudGauntlet::Irb < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'irb'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.maximum_workers = 1
 
   def run

@@ -2,7 +2,7 @@ require 'thread'
 
 class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'control'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.services = %w[gauntlet_ring_server gauntlet_control]
   config.maximum_workers = 1
 

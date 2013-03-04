@@ -7,7 +7,9 @@ class ATT::CloudGauntlet::Configuration
   attr_accessor :name
   attr_accessor :services
 
-  def self.new name
+  def self.new klass
+    name = short_name klass
+
     config = super name
 
     @node_types[name] = config
@@ -15,14 +17,33 @@ class ATT::CloudGauntlet::Configuration
     config
   end
 
-  def self.services_for name
+  def self.services_for vm_name
     configuration = @node_types.each_value.find do |config|
-      /#{Regexp.escape config.name}/ =~ name
+      /#{Regexp.escape config.name}/ =~ vm_name
     end
 
     return [] unless configuration
 
     configuration.services
+  end
+
+  def self.short_name klass
+    klass.name.split('::').last
+  end
+
+  def self.workers_for klass, vcpus
+    name = short_name klass
+
+    config = @node_types[name]
+
+    cpu_multiplier  = config.cpu_multiplier
+    maximum_workers = config.maximum_workers
+
+    workers = vcpus * cpu_multiplier
+
+    return maximum_workers if workers >= maximum_workers
+
+    workers
   end
 
   def initialize name

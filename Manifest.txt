@@ -21,6 +21,7 @@ lib/att/cloud_gauntlet/collect.rb
 lib/att/cloud_gauntlet/configuration.rb
 lib/att/cloud_gauntlet/console.rb
 lib/att/cloud_gauntlet/control.rb
+lib/att/cloud_gauntlet/fog_utilities.rb
 lib/att/cloud_gauntlet/gem_checksummer.rb
 lib/att/cloud_gauntlet/gem_downloader.rb
 lib/att/cloud_gauntlet/irb.rb

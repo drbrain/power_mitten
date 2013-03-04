@@ -3,7 +3,7 @@ require 'digest/sha2'
 
 class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'gem_checksummer'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.services << 'gem_checksummer'
   config.cpu_multiplier = 8
 

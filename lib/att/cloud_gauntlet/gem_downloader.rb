@@ -2,7 +2,7 @@ require 'net/http/persistent'
 
 class ATT::CloudGauntlet::GemDownloader < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'gem_downloader'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.services << 'gem_downloader'
   config.cpu_multiplier = 8
 

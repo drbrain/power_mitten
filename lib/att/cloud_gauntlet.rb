@@ -8,6 +8,7 @@ module ATT::CloudGauntlet
 end
 
 require 'att/cloud_gauntlet/configuration'
+require 'att/cloud_gauntlet/fog_utilities'
 require 'att/cloud_gauntlet/node'
 require 'att/cloud_gauntlet/checksum_dump'
 require 'att/cloud_gauntlet/collect'

@@ -10,7 +10,7 @@ require 'rdoc'
 
 class ATT::CloudGauntlet::RDocer < ATT::CloudGauntlet::Node
 
-  config = ATT::CloudGauntlet::Configuration.new 'rdocer'
+  config = ATT::CloudGauntlet::Configuration.new self
   config.services << 'rdocer'
   config.cpu_multiplier = 1.5
 

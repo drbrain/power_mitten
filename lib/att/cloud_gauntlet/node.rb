@@ -8,7 +8,16 @@ require 'syslog'
 
 class ATT::CloudGauntlet::Node
 
+  extend  ATT::CloudGauntlet::FogUtilities
+  include ATT::CloudGauntlet::FogUtilities
+
+  @fog = nil
+
   attr_reader :swift
+
+  def self.fog
+    @fog
+  end
 
   def self.load_configuration file = File.expand_path('~/.gauntlet_control')
     yaml          = File.read file
@@ -111,6 +120,17 @@ class ATT::CloudGauntlet::Node
     options.merge! load_configuration options[:configuration]
 
     if options[:workers].zero? then
+      @fog = fog_compute(
+        options[:openstack_auth_url],
+        options[:openstack_tenant],
+        options[:openstack_username],
+        options[:openstack_api_key])
+
+      options[:workers] =
+        ATT::CloudGauntlet::Configuration.workers_for self, local_vcpus
+    end
+
+    if options[:workers] < 2 then
       new(options)._run
     else
       prefork options
@@ -206,12 +226,7 @@ class ATT::CloudGauntlet::Node
   end
 
   def fog
-    @fog ||= Fog::Compute.new \
-      provider: :openstack,
-      openstack_api_key:  @api_key,
-      openstack_auth_url: @auth_url,
-      openstack_tenant:   @tenant,
-      openstack_username: @username
+    @fog ||= fog_compute @auth_url, @tenant, @username, @api_key
   end
 
   def get_control
@@ -242,35 +257,6 @@ class ATT::CloudGauntlet::Node
 
   def info message
     @syslog.info '%s', message
-  end
-
-  ##
-  # From http://coderrr.wordpress.com/2008/05/28/get-your-local-ip-address/
-
-  def local_ip
-    @local_ip ||= UDPSocket.open do |s|
-      s.connect '192.0.2.1', 1
-      s.addr.last
-    end
-  end
-
-  ##
-  # Returns the name of this node according to OpenStack
-
-  def local_name
-    local_vm = fog.servers.find do |vm|
-      addresses = vm.addresses.values.flatten
-
-      next unless addresses
-
-      addresses.any? do |address|
-        address['addr'] == local_ip
-      end
-    end
-
-    return local_vm.name if local_vm
-
-    self.class.name.split('::', -1).last.downcase
   end
 
   def notice message
