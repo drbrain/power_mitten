@@ -13,9 +13,11 @@ class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
   def initialize options
     super options
 
-    @gem_queue         = nil
+    @gem_queue    = nil
+    @md5_queue    = nil
+    @sha512_queue = nil
 
-    @gems_container   = 'gems'
+    @gems_container = 'gems'
   end
 
   def add_gems
