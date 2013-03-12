@@ -19,7 +19,7 @@ class ATT::CloudGauntlet::Configuration
 
   def self.services_for vm_name
     configuration = @node_types.each_value.find do |config|
-      /#{Regexp.escape config.name}/ =~ vm_name
+      /\A#{Regexp.escape config.name}/ =~ vm_name
     end
 
     return [] unless configuration
