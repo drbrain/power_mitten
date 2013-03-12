@@ -25,7 +25,7 @@ class Resolv::OpenStack < Resolv::Hosts
       @addr2name = Hash.new { |h, addr| h[addr] = [] }
 
       @compute.servers.each do |vm|
-        name = vm.name.tr '_', '-'
+        name = vm.name.downcase.tr '_', '-'
         vm.addresses.values.flatten.each do |entry|
           addr = entry['addr']
           next unless addr =~ /\A10\./
@@ -38,6 +38,10 @@ class Resolv::OpenStack < Resolv::Hosts
     end
 
     self
+  end
+
+  def each_address name
+    super name.downcase
   end
 
   def inspect # :nodoc:
