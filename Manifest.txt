@@ -10,6 +10,7 @@ bin/gauntlet_console
 bin/gauntlet_control
 bin/gauntlet_irb
 bin/gauntlet_ring_server
+bin/gem_dependencies
 bin/gem_downloader
 bin/rdocer
 bin/startup
