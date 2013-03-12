@@ -23,6 +23,7 @@ lib/att/cloud_gauntlet/console.rb
 lib/att/cloud_gauntlet/control.rb
 lib/att/cloud_gauntlet/fog_utilities.rb
 lib/att/cloud_gauntlet/gem_checksummer.rb
+lib/att/cloud_gauntlet/gem_dependencies.rb
 lib/att/cloud_gauntlet/gem_downloader.rb
 lib/att/cloud_gauntlet/irb.rb
 lib/att/cloud_gauntlet/node.rb
