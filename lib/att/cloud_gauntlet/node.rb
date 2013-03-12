@@ -189,7 +189,7 @@ class ATT::CloudGauntlet::Node
     return @control_hosts if @control_hosts
 
     control_hosts = fog.servers.select do |vm|
-      vm.name =~ /gauntlet_control/
+      vm.name =~ /\AControl/
     end.uniq
 
     return [] unless control_hosts
