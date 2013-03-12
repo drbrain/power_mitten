@@ -288,7 +288,7 @@ class ATT::CloudGauntlet::Node
   def service name, broadcast, check_every = 10
     service = RingyDingy.new self, name, nil, broadcast
     service.check_every = check_every
-    service.run
+    service.run :first_register
   end
 
   def warn message
