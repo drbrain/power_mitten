@@ -28,7 +28,7 @@ class ATT::CloudGauntlet::Console < ATT::CloudGauntlet::Node
         class_name
       end.each do |class_name, names|
         next if names.empty?
-        @window.setpos @window.curx, 0
+        @window.setpos @window.cury, 0
 
         @window.addstr "#{class_name}:"
         @window.setpos @window.cury + 1, 2
