@@ -65,6 +65,8 @@ class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
 
       true
     end
+
+    info "added #{klass.name} #{name}"
   end
 
   ##
@@ -74,12 +76,18 @@ class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
     @services_mutex.synchronize do
       @services[klass.name][name] = service
     end
+
+    info "registered remote service #{klass.name} #{name} from #{service.__drburi}"
   end
 
   def run
-    control_service = service :control, %w[localhost], 1
+    control_service = service :control, control_hosts, 1
+
+    info "control registered at #{control_service.ring_server.__drburi}"
 
     DRb.thread.join
+  rescue
+    error "#{$!.message} (#{$!.class})"
   end
 
   ##
