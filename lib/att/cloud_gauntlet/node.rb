@@ -14,6 +14,7 @@ class ATT::CloudGauntlet::Node
   @fog = nil
 
   attr_reader :swift
+  attr_accessor :level # :nodoc:
 
   def self.fog
     @fog
@@ -49,6 +50,7 @@ class ATT::CloudGauntlet::Node
     options = {
       configuration: File.expand_path('~/.gauntlet_control'),
       daemon:        false,
+      type:          nil,
       workers:       0,
     }
 
@@ -68,6 +70,10 @@ class ATT::CloudGauntlet::Node
 
       opt.on('--localhost') do
         options[:localhost] = true
+      end
+
+      opt.on('--type=TYPE') do |type|
+        options[:type] = type
       end
 
       opt.on('--once') do
@@ -92,49 +98,14 @@ class ATT::CloudGauntlet::Node
     options
   end
 
-  def self.prefork options
-    require 'servolux'
-
-    workers = options[:workers]
-    klass   = self
-
-    pool = Servolux::Prefork.new(max_workers: workers, min_workers: 0) do
-      begin
-        klass.new(options)._run
-      rescue Exception => e
-        open '/dev/stderr', 'w' do |io| io.puts e.message end
-      end
-    end
-
-    pool.start workers
-
-    trap 'INT'  do pool.signal 'KILL' end
-    trap 'TERM' do pool.signal 'KILL' end
-
-    Process.waitall
-  end
-
   def self.run argv = ARGV
     options = parse_args argv
 
     options.merge! load_configuration options[:configuration]
 
-    if options[:workers].zero? then
-      @fog = fog_compute(
-        options[:openstack_auth_url],
-        options[:openstack_tenant],
-        options[:openstack_username],
-        options[:openstack_api_key])
+    node = new options
 
-      options[:workers] =
-        ATT::CloudGauntlet::Configuration.workers_for self, local_vcpus
-    end
-
-    if options[:workers] < 2 then
-      new(options)._run
-    else
-      prefork options
-    end
+    node.run
   end
 
   def initialize options = {}
@@ -149,9 +120,11 @@ class ATT::CloudGauntlet::Node
     @daemon    = options[:daemon]
     @localhost = options[:localhost]
     @once      = options[:once]
+    @type      = options[:type]
 
     @fog     = nil
     @control = nil
+    @level   = nil
     @service = nil
     @swift   = nil
     @syslog  =
@@ -161,16 +134,20 @@ class ATT::CloudGauntlet::Node
         Syslog.open   self.class.name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       end
 
-    resolver = Resolv.new [
+    resolvers = [
       Resolv::Hosts.new,
       Resolv::DNS.new,
-      Resolv::OpenStack.new(fog)
     ]
+
+    resolvers.push Resolv::OpenStack.new(fog) unless @localhost
+    resolvers.unshift Resolv::MDNS.new if Resolv.const_defined? :MDNS
+
+    resolver = Resolv.new resolvers
 
     Resolv.send :remove_const, :DefaultResolver
     Resolv.send :const_set, :DefaultResolver, resolver
 
-    notice 'starting'
+    notice "starting #{self.class}"
   end
 
   def connect_swift
@@ -207,8 +184,16 @@ class ATT::CloudGauntlet::Node
     @control_hosts = addresses
   end
 
+  def debug message
+    @syslog.debug '%s', message
+  end
+
   def error message
     @syslog.err '%s', message
+  end
+
+  def fatal message
+    @syslog.alert '%s', message
   end
 
   def find_control
@@ -259,14 +244,22 @@ class ATT::CloudGauntlet::Node
     @syslog.info '%s', message
   end
 
+  ##
+  # Returns the name of this node which may have been overridden by the
+  # +--type+ command-line option.
+
+  def local_name
+    @type || super
+  end
+
   def notice message
     @syslog.notice '%s', message
   end
 
-  def _run
+  def run
     get_control
 
-    run
+    yield
   rescue DRb::DRbConnError => e
     raise if @once
     notice "lost connection: #{e.message}"
@@ -279,6 +272,8 @@ class ATT::CloudGauntlet::Node
     retry
   rescue ThreadError
     return # queue empty
+  rescue SignalException, SystemExit
+    raise
   rescue Exception => e
     error "#{e.message} (#{e.class}) - #{e.backtrace.first}"
 

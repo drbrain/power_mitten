@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'att/cloud_gauntlet'
-
-ATT::CloudGauntlet::Control.run
-

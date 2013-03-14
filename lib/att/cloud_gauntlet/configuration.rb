@@ -5,12 +5,12 @@ class ATT::CloudGauntlet::Configuration
   attr_accessor :cpu_multiplier
   attr_accessor :maximum_workers
   attr_accessor :name
-  attr_accessor :services
+  attr_reader :services
 
   def self.new klass
     name = short_name klass
 
-    config = super name
+    config = super klass
 
     @node_types[name] = config
 
@@ -46,12 +46,25 @@ class ATT::CloudGauntlet::Configuration
     workers
   end
 
-  def initialize name
-    @name = name
+  ##
+  # Creates a new configuration for +klass+
+  #
+  # The default service has a +cpu_multiplier+ of 1 and a +maximum_workers+
+  # count of infinity.
+
+  def initialize klass
+    @name = self.class.short_name klass
 
     @cpu_multiplier  = 1
     @maximum_workers = Float::INFINITY
-    @services        = []
+    @services        = [klass]
+  end
+
+  ##
+  # Adds +klass+ as a service started along with this one
+
+  def add_service klass
+    @services << klass
   end
 
 end

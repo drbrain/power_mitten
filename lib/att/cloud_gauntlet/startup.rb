@@ -1,19 +1,29 @@
 class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
 
-  def self.run argv = ARGV
-    options = parse_args argv
-
-    options.merge! load_configuration options[:configuration]
-
-    startup = new options
-
-    startup.run
-  end
-
   def initialize options = {}
     super
 
     @local_ip = nil
+    @threads  = nil
+    @running  = true
+
+    @options  = options
+    @workers  = @options[:workers]
+  end
+
+  def fork_child service, workers
+    pid = fork do
+      Process.setsid
+
+      trap 'INT',  'DEFAULT'
+      trap 'TERM', 'DEFAULT'
+
+      service.new(@options).run
+    end
+
+    notice "forked #{service.name} at #{pid}"
+
+    pid
   end
 
   def run
@@ -23,19 +33,67 @@ class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
 
     services = ATT::CloudGauntlet::Configuration.services_for name
 
-    notice "registering #{services.join ', '}"
+    @threads = start_services services
 
-    services.each do |service|
-      system 'sudo', '/usr/sbin/update-rc.d', '-f', service, 'remove'
-      system 'sudo', '/usr/sbin/update-rc.d', '-f', service, 'defaults', '99', '1'
-      system 'sudo', "/etc/init.d/#{service}", 'start'
+    trap 'INT'  do stop_services end
+    trap 'TERM' do stop_services end
 
-      if $? then
-        notice "#{service} started"
-      else
-        notice "#{service} did not start"
+    @threads.each do |thread|
+      thread.join
+    end
+  end
+
+  def start_service service
+    workers = workers service
+
+    ok_signals = Signal.list.values_at 'TERM', 'INT'
+
+    workers.times.map do
+      Thread.new do
+        while @running do
+          pid = fork_child service, workers
+
+          Thread.current[:pid] = pid
+
+          _, status = Process.wait2 pid
+
+          notice "service #{service} #{status}"
+
+          break if status.success?
+          break if ok_signals.include?(status.termsig)
+        end
       end
     end
+  end
+
+  def start_services services
+    services.map do |service|
+      start_service service
+    end.flatten
+  end
+
+  def stop_services
+    @running = false
+
+    @threads.each do |thread|
+      pid = thread[:pid]
+
+      next unless pid
+
+      notice "shutting down #{pid}"
+
+      begin
+        Process.kill 'TERM', pid
+      rescue Errno::ESRCH
+        notice "process #{pid} not found"
+      end
+    end
+  end
+
+  def workers service
+    return @workers if @workers.nonzero?
+
+    ATT::CloudGauntlet::Configuration.workers_for service, local_vcpus
   end
 
 end

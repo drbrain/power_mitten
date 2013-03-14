@@ -11,7 +11,6 @@ require 'rdoc'
 class ATT::CloudGauntlet::RDocer < ATT::CloudGauntlet::Node
 
   config = ATT::CloudGauntlet::Configuration.new self
-  config.services << 'rdocer'
   config.cpu_multiplier = 1.5
 
   attr_reader :gem_queue
@@ -147,17 +146,19 @@ class ATT::CloudGauntlet::RDocer < ATT::CloudGauntlet::Node
   end
 
   def run
-    swift = connect_swift
+    super do
+      swift = connect_swift
 
-    swift.create_container @gems_container
-    swift.create_container @result_container
+      swift.create_container @gems_container
+      swift.create_container @result_container
 
-    get_queues
+      get_queues
 
-    add_gems
+      add_gems
 
-    while gem = @gem_queue.deq(true) do
-      rdoc gem
+      while gem = @gem_queue.deq(true) do
+        rdoc gem
+      end
     end
   end
 

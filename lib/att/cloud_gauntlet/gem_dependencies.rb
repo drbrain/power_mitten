@@ -3,7 +3,6 @@ require 'tempfile'
 class ATT::CloudGauntlet::GemDependencies < ATT::CloudGauntlet::Node
 
   config = ATT::CloudGauntlet::Configuration.new self
-  config.services << 'gem_dependencies'
   config.cpu_multiplier = 8
 
   attr_reader :gem_queue
@@ -58,14 +57,16 @@ class ATT::CloudGauntlet::GemDependencies < ATT::CloudGauntlet::Node
   end
 
   def run
-    swift = connect_swift
+    super do
+      swift = connect_swift
 
-    get_queues
+      get_queues
 
-    add_gems
+      add_gems
 
-    while gem = @gem_queue.deq(true) do
-      extract_dependencies gem
+      while gem = @gem_queue.deq(true) do
+        extract_dependencies gem
+      end
     end
   end
 

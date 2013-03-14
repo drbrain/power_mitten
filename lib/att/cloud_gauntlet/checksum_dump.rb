@@ -20,21 +20,23 @@ class ATT::CloudGauntlet::ChecksumDump < ATT::CloudGauntlet::Node
   end
 
   def run
-    get_queues
+    super do
+      get_queues
 
-    open 'rubygems-sha512.swift.txt', 'a' do |io|
-      while item = @sha512_queue.deq(true) do
-        name, checksum = item
+      open 'rubygems-sha512.swift.txt', 'a' do |io|
+        while item = @sha512_queue.deq(true) do
+          name, checksum = item
 
-        io.puts "#{checksum}  ./#{name}"
+          io.puts "#{checksum}  ./#{name}"
+        end
       end
-    end
 
-    open 'rubygems-md5.swift.txt', 'a' do |io|
-      while item = @md5_queue.deq(true) do
-        name, checksum = item
+      open 'rubygems-md5.swift.txt', 'a' do |io|
+        while item = @md5_queue.deq(true) do
+          name, checksum = item
 
-        io.puts "#{checksum}  ./#{name}"
+          io.puts "#{checksum}  ./#{name}"
+        end
       end
     end
   end

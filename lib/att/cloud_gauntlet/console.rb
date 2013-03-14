@@ -11,6 +11,7 @@ class ATT::CloudGauntlet::Console < ATT::CloudGauntlet::Node
     @queue_stats = Hash.new 0
 
     @wait = 2.0
+    @type = 'Irb' if @localhost
   end
 
   ##
@@ -50,14 +51,18 @@ class ATT::CloudGauntlet::Console < ATT::CloudGauntlet::Node
   end
 
   def run
-    console
-  rescue DRb::DRbConnError => e
-    puts <<-MESSAGE
+    super do
+      begin
+        console
+      rescue DRb::DRbConnError => e
+        puts <<-MESSAGE
 Disconnected due to #{e.class}
 \t#{e.message}
 Reconnecting...
-    MESSAGE
-    retry
+        MESSAGE
+        retry
+      end
+    end
   end
 
   def show class_name, name, service

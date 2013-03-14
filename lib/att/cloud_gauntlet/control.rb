@@ -3,7 +3,7 @@ require 'thread'
 class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
 
   config = ATT::CloudGauntlet::Configuration.new self
-  config.services = %w[gauntlet_ring_server gauntlet_control]
+  config.add_service ATT::CloudGauntlet::RingServer
   config.maximum_workers = 1
 
   attr_reader :services
@@ -86,8 +86,12 @@ class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
     info "control registered at #{control_service.ring_server.__drburi}"
 
     DRb.thread.join
-  rescue
-    error "#{$!.message} (#{$!.class})"
+  rescue Interrupt, SystemExit
+    raise
+  rescue Exception => e
+    error "#{e.message} (#{e.class}) - #{e.backtrace.first}"
+
+    raise
   end
 
   ##

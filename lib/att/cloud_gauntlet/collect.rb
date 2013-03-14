@@ -137,37 +137,35 @@ class ATT::CloudGauntlet::Collect < ATT::CloudGauntlet::Node
   end
 
   def run
-    connect_swift
+    super do
+      connect_swift
 
-    @swift.create_container @result_container
+      @swift.create_container @result_container
 
-    container = @swift.containers.find do |container|
-      container['name'] == @result_container
-    end
-
-    puts "#{container['name']} has #{container['count']} items"
-
-    status_thread = Thread.new do
-      loop do
-        sleep 5
-        puts "chunk_queue: #{@chunk_queue.length} " \
-             "status_queue: #{@status_queue.length}"
+      container = @swift.containers.find do |container|
+        container['name'] == @result_container
       end
+
+      puts "#{container['name']} has #{container['count']} items"
+
+      status_thread = Thread.new do
+        loop do
+          sleep 5
+          puts "chunk_queue: #{@chunk_queue.length} " \
+               "status_queue: #{@status_queue.length}"
+        end
+      end
+
+      thread = read_objects
+
+      read_statuses
+
+      thread.join
+
+      status_thread.kill
+
+      report
     end
-
-    thread = read_objects
-
-    read_statuses
-
-    thread.join
-
-    status_thread.kill
-
-    report
-  end
-
-  def _run
-    run
   end
 
 end

@@ -3,16 +3,8 @@ History.rdoc
 Manifest.txt
 README.rdoc
 Rakefile
-bin/checksum_dump
-bin/checksummer
-bin/gauntlet_collect
 bin/gauntlet_console
-bin/gauntlet_control
 bin/gauntlet_irb
-bin/gauntlet_ring_server
-bin/gem_dependencies
-bin/gem_downloader
-bin/rdocer
 bin/startup
 clear.rb
 failed.rb

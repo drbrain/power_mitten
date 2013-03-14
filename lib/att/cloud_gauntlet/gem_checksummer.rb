@@ -4,7 +4,6 @@ require 'digest/sha2'
 class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
 
   config = ATT::CloudGauntlet::Configuration.new self
-  config.services << 'gem_checksummer'
   config.cpu_multiplier = 8
 
   attr_reader :gem_queue
@@ -59,16 +58,18 @@ class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
   end
 
   def run
-    swift = connect_swift
+    super do
+      swift = connect_swift
 
-    swift.create_container @gems_container
+      swift.create_container @gems_container
 
-    get_queues
+      get_queues
 
-    add_gems
+      add_gems
 
-    while gem = @gem_queue.deq(true) do
-      checksum gem
+      while gem = @gem_queue.deq(true) do
+        checksum gem
+      end
     end
   end
 

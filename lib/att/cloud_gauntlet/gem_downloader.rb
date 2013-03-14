@@ -3,7 +3,6 @@ require 'net/http/persistent'
 class ATT::CloudGauntlet::GemDownloader < ATT::CloudGauntlet::Node
 
   config = ATT::CloudGauntlet::Configuration.new self
-  config.services << 'gem_downloader'
   config.cpu_multiplier = 8
 
   def initialize options
@@ -99,16 +98,18 @@ class ATT::CloudGauntlet::GemDownloader < ATT::CloudGauntlet::Node
   end
 
   def run
-    swift = connect_swift
+    super do
+      swift = connect_swift
 
-    swift.create_container @gems_container
+      swift.create_container @gems_container
 
-    get_queues
+      get_queues
 
-    add_gem_names
+      add_gem_names
 
-    while name = @gem_name_queue.deq(true) do
-      download name
+      while name = @gem_name_queue.deq(true) do
+        download name
+      end
     end
   end
 
