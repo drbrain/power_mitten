@@ -14,6 +14,7 @@ require 'power_mitten/gem_checksummer'
 require 'power_mitten/gem_dependencies'
 require 'power_mitten/gem_downloader'
 require 'power_mitten/irb'
+require 'power_mitten/mitten'
 require 'power_mitten/rdocer'
 require 'power_mitten/startup'
 

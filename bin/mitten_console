@@ -1,6 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'power_mitten'
-
-PowerMitten::Console.run
-

@@ -4,8 +4,6 @@ Manifest.txt
 README.rdoc
 Rakefile
 bin/mitten
-bin/mitten_console
-bin/mitten_irb
 lib/power_mitten.rb
 lib/power_mitten/checksum_dump.rb
 lib/power_mitten/collect.rb
@@ -17,6 +15,7 @@ lib/power_mitten/gem_checksummer.rb
 lib/power_mitten/gem_dependencies.rb
 lib/power_mitten/gem_downloader.rb
 lib/power_mitten/irb.rb
+lib/power_mitten/mitten.rb
 lib/power_mitten/node.rb
 lib/power_mitten/rdocer.rb
 lib/power_mitten/ring_server.rb

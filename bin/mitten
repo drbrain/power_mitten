@@ -2,5 +2,5 @@
 
 require 'power_mitten'
 
-PowerMitten::Startup.run
+PowerMitten::Mitten.run
 
