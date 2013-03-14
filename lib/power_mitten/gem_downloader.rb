@@ -1,8 +1,8 @@
 require 'net/http/persistent'
 
-class ATT::CloudGauntlet::GemDownloader < ATT::CloudGauntlet::Node
+class PowerMitten::GemDownloader < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
   def initialize options

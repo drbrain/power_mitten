@@ -1,6 +1,6 @@
-class ATT::CloudGauntlet::ChecksumDump < ATT::CloudGauntlet::Node
+class PowerMitten::ChecksumDump < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
   attr_reader :md5_queue

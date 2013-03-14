@@ -1,9 +1,9 @@
 require 'thread'
 
-class ATT::CloudGauntlet::Control < ATT::CloudGauntlet::Node
+class PowerMitten::Control < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
-  config.add_service ATT::CloudGauntlet::RingServer
+  config = PowerMitten::Configuration.new self
+  config.add_service PowerMitten::RingServer
   config.maximum_workers = 1
 
   attr_reader :services

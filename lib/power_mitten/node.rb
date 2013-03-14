@@ -6,10 +6,10 @@ require 'resolv/open_stack'
 require 'ringy_dingy'
 require 'syslog'
 
-class ATT::CloudGauntlet::Node
+class PowerMitten::Node
 
-  extend  ATT::CloudGauntlet::FogUtilities
-  include ATT::CloudGauntlet::FogUtilities
+  extend  PowerMitten::FogUtilities
+  include PowerMitten::FogUtilities
 
   @fog = nil
 
@@ -20,7 +20,7 @@ class ATT::CloudGauntlet::Node
     @fog
   end
 
-  def self.load_configuration file = File.expand_path('~/.gauntlet_control')
+  def self.load_configuration file = File.expand_path('~/.power_mitten')
     yaml          = File.read file
     configuration = Psych.load yaml
     options       = {}
@@ -48,7 +48,7 @@ class ATT::CloudGauntlet::Node
 
   def self.parse_args argv
     options = {
-      configuration: File.expand_path('~/.gauntlet_control'),
+      configuration: File.expand_path('~/.power_mitten'),
       daemon:        false,
       type:          nil,
       workers:       0,

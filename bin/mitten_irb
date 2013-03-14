@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'power_mitten'
+
+PowerMitten::Irb.run
+

@@ -1,8 +1,8 @@
 require 'ringy_dingy/ring_server'
 
-class ATT::CloudGauntlet::RingServer < ATT::CloudGauntlet::Node
+class PowerMitten::RingServer < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
   def initialize options

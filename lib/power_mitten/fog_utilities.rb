@@ -1,4 +1,4 @@
-module ATT::CloudGauntlet::FogUtilities
+module PowerMitten::FogUtilities
 
   def self.extended mod
     super

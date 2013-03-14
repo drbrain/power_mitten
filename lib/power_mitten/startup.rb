@@ -1,4 +1,4 @@
-class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
+class PowerMitten::Startup < PowerMitten::Node
 
   def initialize options = {}
     super
@@ -31,7 +31,7 @@ class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
 
     notice "this is a #{name} node"
 
-    services = ATT::CloudGauntlet::Configuration.services_for name
+    services = PowerMitten::Configuration.services_for name
 
     @threads = start_services services
 
@@ -93,7 +93,7 @@ class ATT::CloudGauntlet::Startup < ATT::CloudGauntlet::Node
   def workers service
     return @workers if @workers.nonzero?
 
-    ATT::CloudGauntlet::Configuration.workers_for service, local_vcpus
+    PowerMitten::Configuration.workers_for service, local_vcpus
   end
 
 end

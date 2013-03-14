@@ -1,8 +1,8 @@
 require 'curses'
 
-class ATT::CloudGauntlet::Console < ATT::CloudGauntlet::Node
+class PowerMitten::Console < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
   def initialize options
@@ -15,7 +15,7 @@ class ATT::CloudGauntlet::Console < ATT::CloudGauntlet::Node
   end
 
   ##
-  # Displays a view of the active services on the gauntlet control node
+  # Displays a view of the active services on the control node
 
   def console
     Curses.init_screen

@@ -8,9 +8,9 @@ require 'uri'
 gem 'rdoc'
 require 'rdoc'
 
-class ATT::CloudGauntlet::RDocer < ATT::CloudGauntlet::Node
+class PowerMitten::RDocer < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 1.5
 
   attr_reader :gem_queue

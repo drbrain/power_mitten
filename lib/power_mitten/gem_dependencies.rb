@@ -1,8 +1,8 @@
 require 'tempfile'
 
-class ATT::CloudGauntlet::GemDependencies < ATT::CloudGauntlet::Node
+class PowerMitten::GemDependencies < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
   attr_reader :gem_queue

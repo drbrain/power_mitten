@@ -1,9 +1,9 @@
 require 'digest/md5'
 require 'digest/sha2'
 
-class ATT::CloudGauntlet::GemChecksummer < ATT::CloudGauntlet::Node
+class PowerMitten::GemChecksummer < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
   attr_reader :gem_queue

@@ -1,6 +1,6 @@
 require 'thread'
 
-class ATT::CloudGauntlet::Collect < ATT::CloudGauntlet::Node
+class PowerMitten::Collect < PowerMitten::Node
 
   def initialize options = {}
     super

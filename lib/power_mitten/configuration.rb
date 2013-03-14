@@ -1,4 +1,4 @@
-class ATT::CloudGauntlet::Configuration
+class PowerMitten::Configuration
 
   @node_types = {}
 

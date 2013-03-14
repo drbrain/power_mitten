@@ -6,7 +6,7 @@ require 'hoe'
 Hoe.plugin :minitest
 Hoe.plugin :git
 
-Hoe.spec 'att-cloud_gauntlet' do
+Hoe.spec 'power_mitten' do
   developer 'Eric Hodel', 'drbrain@segment7.net'
 
   extra_deps << ['RingyDingy', '~> 1.2']

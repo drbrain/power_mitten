@@ -1,9 +1,9 @@
 require 'irb'
 require 'pp'
 
-class ATT::CloudGauntlet::Irb < ATT::CloudGauntlet::Node
+class PowerMitten::Irb < PowerMitten::Node
 
-  config = ATT::CloudGauntlet::Configuration.new self
+  config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
   def initialize options = {}

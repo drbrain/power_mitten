@@ -1,4 +1,4 @@
-= master
+= power_mitten
 
 home :: https://github.com/drbrain/master
 rdoc :: http://docs.seattlerb.org/master
