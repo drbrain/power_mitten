@@ -18,6 +18,8 @@ class PowerMitten::Startup < PowerMitten::Node
       trap 'INT',  'DEFAULT'
       trap 'TERM', 'DEFAULT'
 
+      $PROGRAM_NAME = "mitten #{service.short_name}"
+
       service.new(@options).run
     end
 

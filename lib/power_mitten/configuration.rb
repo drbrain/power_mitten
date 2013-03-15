@@ -8,11 +8,9 @@ class PowerMitten::Configuration
   attr_reader :services
 
   def self.new klass
-    name = short_name klass
-
     config = super klass
 
-    @node_types[name] = config
+    @node_types[klass.short_name] = config
 
     config
   end
@@ -27,14 +25,8 @@ class PowerMitten::Configuration
     configuration.services
   end
 
-  def self.short_name klass
-    klass.name.split('::').last
-  end
-
   def self.workers_for klass, vcpus
-    name = short_name klass
-
-    config = @node_types[name]
+    config = @node_types[klass.short_name]
 
     cpu_multiplier  = config.cpu_multiplier
     maximum_workers = config.maximum_workers
@@ -53,7 +45,7 @@ class PowerMitten::Configuration
   # count of infinity.
 
   def initialize klass
-    @name = self.class.short_name klass
+    @name = klass.short_name
 
     @cpu_multiplier  = 1
     @maximum_workers = Float::INFINITY

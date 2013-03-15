@@ -20,6 +20,10 @@ class PowerMitten::Node
     @fog
   end
 
+  def self.short_name
+    name.split('::').last
+  end
+
   def initialize options = {}
     @api_key  = options[:openstack_api_key]
     @auth_url = options[:openstack_auth_url]
@@ -41,9 +45,9 @@ class PowerMitten::Node
     @swift   = nil
     @syslog  =
       if Syslog.opened? then
-        Syslog.reopen self.class.name, Syslog::LOG_PID, Syslog::LOG_DAEMON
+        Syslog.reopen self.class.short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       else
-        Syslog.open   self.class.name, Syslog::LOG_PID, Syslog::LOG_DAEMON
+        Syslog.open   self.class.short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       end
 
     resolvers = [
@@ -91,6 +95,8 @@ class PowerMitten::Node
       end
     end.flatten.compact.uniq
 
+    raise "no control hosts found" if addresses.empty?
+
     info "found control hosts #{addresses.join ', '}"
 
     @control_hosts = addresses
@@ -117,6 +123,8 @@ class PowerMitten::Node
   rescue => e
     notice "unable to connect to control at #{hosts.join ', '}: #{e.message} (#{e.class})"
     raise if @once
+
+    @control_hosts = nil
     sleep 2
 
     retry
