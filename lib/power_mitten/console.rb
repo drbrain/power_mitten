@@ -52,16 +52,7 @@ class PowerMitten::Console < PowerMitten::Node
 
   def run
     super do
-      begin
-        console
-      rescue DRb::DRbConnError => e
-        puts <<-MESSAGE
-Disconnected due to #{e.class}
-\t#{e.message}
-Reconnecting...
-        MESSAGE
-        retry
-      end
+      console
     end
   end
 
