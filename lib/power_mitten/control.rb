@@ -21,10 +21,12 @@ class PowerMitten::Control < PowerMitten::Node
   def initialize options = {}
     super
 
-    @services = Hash.new do |h, class_name|
+    @running        = true
+    @services       = Hash.new do |h, class_name|
       h[class_name] = {} # class_name => { name: instance }
     end
     @services_mutex = Mutex.new
+    @threads        = []
   end
 
   ##
@@ -40,7 +42,24 @@ class PowerMitten::Control < PowerMitten::Node
   # Queue was created, +false+ if it already exists.
 
   def add_queue name
-    add_service Queue, name
+    @services_mutex.synchronize do
+      begin
+        service = RingyDingy.find name, control_hosts
+
+        return false
+      rescue RuntimeError # HACK update RingyDingy to have useful exceptions
+        options = @options.dup
+        options[:name] = name
+
+        start_service PowerMitten::Queue, 1, options
+
+        sleep 10 # HACK wait for Queue to register
+
+        RingyDingy.find name, control_hosts
+      end
+    end
+
+    return true
   end
 
   ##
@@ -57,9 +76,7 @@ class PowerMitten::Control < PowerMitten::Node
 
       instance = klass.new
 
-      service = RingyDingy.new instance, name
-      service.check_every = 2
-      service.run :first_register
+      service = register instance, name
 
       @services[class_name][name] = service
 
@@ -85,7 +102,14 @@ class PowerMitten::Control < PowerMitten::Node
 
     info "control registered at #{control_service.ring_server.__drburi}"
 
+    trap 'INT'  do warn "INT";  DRb.stop_service; stop_services end
+    trap 'TERM' do warn "TERM"; DRb.stop_service; stop_services end
+
     DRb.thread.join
+
+    @threads.each do |thread|
+      thread.join
+    end
   rescue Interrupt, SystemExit
     raise
   rescue Exception => e

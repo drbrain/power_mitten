@@ -25,6 +25,8 @@ class PowerMitten::Node
   end
 
   def initialize options = {}
+    @options  = options
+
     @api_key  = options[:openstack_api_key]
     @auth_url = options[:openstack_auth_url]
     @tenant   = options[:openstack_tenant]
@@ -38,16 +40,17 @@ class PowerMitten::Node
     @once      = options[:once]
     @type      = options[:type]
 
-    @fog     = nil
-    @control = nil
-    @level   = nil
-    @service = nil
-    @swift   = nil
-    @syslog  =
+    @fog         = nil
+    @control     = nil
+    @level       = nil
+    @ring_finger = nil
+    @service     = nil
+    @swift       = nil
+    @syslog      =
       if Syslog.opened? then
-        Syslog.reopen self.class.short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
+        Syslog.reopen short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       else
-        Syslog.open   self.class.short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
+        Syslog.open   short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       end
 
     resolvers = [
@@ -134,12 +137,34 @@ class PowerMitten::Node
     @fog ||= fog_compute @auth_url, @tenant, @username, @api_key
   end
 
+  def fork_child service, workers, options
+    pid = fork do
+      Process.setsid
+
+      trap 'INT',  'DEFAULT'
+      trap 'TERM', 'DEFAULT'
+
+      $PROGRAM_NAME = "mitten #{service.short_name}"
+      DRb.stop_service
+      DRb.start_service
+
+      service.new(options).run
+    end
+
+    notice "forked #{service.name} at #{pid}"
+
+    pid
+  end
+
   def get_control
     @control_hosts = nil
 
     hosts = find_control
 
     notice "found control at #{@control.__drburi}"
+
+    @ring_finger = Rinda::RingFinger.new control_hosts
+    RingyDingy::RingServer.ring_finger = @ring_finger
 
     @service = service local_name, hosts
 
@@ -200,10 +225,65 @@ class PowerMitten::Node
     raise
   end
 
+  def register object, name
+    service = RingyDingy.new object, name, nil, control_hosts
+    service.check_every = 2
+    service.run :first_register
+  end
+
   def service name, broadcast, check_every = 10
     service = RingyDingy.new self, name, nil, broadcast
     service.check_every = check_every
     service.run :first_register
+  end
+
+  def services
+    services = RingyDingy::RingServer.list_services
+
+    services.values.flatten 1
+  end
+
+  def short_name
+    self.class.short_name
+  end
+
+  def start_service service, workers, options = @options
+    ok_signals = Signal.list.values_at 'TERM', 'INT'
+
+    workers.times.map do
+      Thread.new do
+        while @running do
+          pid = fork_child service, workers, options
+
+          Thread.current[:pid] = pid
+
+          _, status = Process.wait2 pid
+
+          notice "service #{service} #{status}"
+
+          break if status.success?
+          break if ok_signals.include?(status.termsig)
+        end
+      end
+    end
+  end
+
+  def stop_services
+    @running = false
+
+    @threads.each do |thread|
+      pid = thread[:pid]
+
+      next unless pid
+
+      notice "shutting down #{pid}"
+
+      begin
+        Process.kill 'TERM', pid
+      rescue Errno::ESRCH
+        notice "process #{pid} not found"
+      end
+    end
   end
 
   def warn message

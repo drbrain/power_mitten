@@ -17,6 +17,7 @@ lib/power_mitten/gem_downloader.rb
 lib/power_mitten/irb.rb
 lib/power_mitten/mitten.rb
 lib/power_mitten/node.rb
+lib/power_mitten/queue.rb
 lib/power_mitten/rdocer.rb
 lib/power_mitten/ring_server.rb
 lib/power_mitten/startup.rb
