@@ -44,7 +44,7 @@ class PowerMitten::Control < PowerMitten::Node
   def add_queue name
     @services_mutex.synchronize do
       begin
-        service = RingyDingy.find name, control_hosts
+        RingyDingy.find name, control_hosts
 
         return false
       rescue RuntimeError # HACK update RingyDingy to have useful exceptions

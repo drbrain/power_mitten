@@ -142,8 +142,8 @@ class PowerMitten::Collect < PowerMitten::Node
 
       @swift.create_container @result_container
 
-      container = @swift.containers.find do |container|
-        container['name'] == @result_container
+      container = @swift.containers.find do |c|
+        c['name'] == @result_container
       end
 
       puts "#{container['name']} has #{container['count']} items"

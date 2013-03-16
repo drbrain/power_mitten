@@ -58,7 +58,7 @@ class PowerMitten::GemDependencies < PowerMitten::Node
 
   def run
     super do
-      swift = connect_swift
+      connect_swift
 
       get_queues
 
