@@ -109,6 +109,13 @@ class PowerMitten::Node
     @syslog.debug '%s', message
   end
 
+  def description
+    rss = nil
+
+    description = "pid #{$$} at #{host_name}"
+    description << ", #{rss} RSS" if rss = resident_set_size
+  end
+
   def error message
     @syslog.err '%s', message
   end
@@ -120,7 +127,7 @@ class PowerMitten::Node
   def find_control
     hosts = control_hosts
 
-    @control = RingyDingy.find :control, hosts
+    @control = RingyDingy.find 'Mitten-control', hosts
 
     hosts
   rescue => e
@@ -168,21 +175,28 @@ class PowerMitten::Node
 
     @service = service local_name, hosts
 
-    @control.register_service self.class, @service, local_name
-
     @control
   end
 
   def get_mutex name
-    @control.add_mutex name
+    mutex_name = "Mutex-#{name}"
+    @control.add_mutex mutex_name
 
-    RingyDingy.find name, control_hosts
+    RingyDingy.find mutex_name, control_hosts
   end
 
   def get_queue name
-    @control.add_queue name
+    queue_name = "Queue-#{name}"
+    @control.add_queue queue_name
 
-    RingyDingy.find name, control_hosts
+    RingyDingy.find queue_name, control_hosts
+  end
+
+  ##
+  # The DNS name of where this node is running
+
+  def host_name
+    Socket.gethostname.split('.', 2).first
   end
 
   def info message
@@ -199,6 +213,25 @@ class PowerMitten::Node
 
   def notice message
     @syslog.notice '%s', message
+  end
+
+  ##
+  # The process ID of this node
+
+  def pid
+    $$
+  end
+
+  ##
+  # RSS in kilobytes
+
+  def resident_set_size
+    case RUBY_PLATFORM
+    when /\Ax86_64-darwin12\./ then
+      require 'power_mitten/mach'
+
+      PowerMitten::Mach.resident_set_size / 1024
+    end
   end
 
   def run
@@ -227,12 +260,12 @@ class PowerMitten::Node
 
   def register object, name
     service = RingyDingy.new object, name, nil, control_hosts
-    service.check_every = 2
+    service.check_every = 1
     service.run :first_register
   end
 
-  def service name, broadcast, check_every = 10
-    service = RingyDingy.new self, name, nil, broadcast
+  def service name, broadcast, check_every = 1
+    service = RingyDingy.new self, "Mitten-#{name}", nil, broadcast
     service.check_every = check_every
     service.run :first_register
   end

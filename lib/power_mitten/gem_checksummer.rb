@@ -20,7 +20,7 @@ class PowerMitten::GemChecksummer < PowerMitten::Node
   end
 
   def add_gems
-    add_gems_mutex = get_mutex :add_gems
+    add_gems_mutex = get_mutex 'add_gems'
 
     add_gems_mutex.synchronize do
       break unless @gem_queue.empty?
@@ -52,9 +52,9 @@ class PowerMitten::GemChecksummer < PowerMitten::Node
   end
 
   def get_queues
-    @gem_queue    = get_queue :gem_queue
-    @md5_queue    = get_queue :md5_queue
-    @sha512_queue = get_queue :sha512_queue
+    @gem_queue    = get_queue 'gem'
+    @md5_queue    = get_queue 'md5'
+    @sha512_queue = get_queue 'sha512'
   end
 
   def run

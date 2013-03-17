@@ -5,6 +5,19 @@ class PowerMitten::GemDownloader < PowerMitten::Node
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
+  ##
+  # Count of gem names checked
+
+  attr_reader :checked
+
+  ##
+  # Count of gems downloaded
+
+  attr_reader :downloaded
+
+  ##
+  # Count of gems with failed download
+
   def initialize options
     super options
 
@@ -17,10 +30,14 @@ class PowerMitten::GemDownloader < PowerMitten::Node
 
     @first_downloader = false
     @gems_container   = 'gems'
+
+    @checked    = 0
+    @downloaded = 0
+    @failed     = 0
   end
 
   def add_gem_names
-    add_gem_names_mutex = get_mutex :add_gem_names
+    add_gem_names_mutex = get_mutex 'add_gem_names'
 
     add_gem_names_mutex.synchronize do
       break unless @gem_name_queue.empty?
@@ -31,7 +48,12 @@ class PowerMitten::GemDownloader < PowerMitten::Node
     end
   end
 
+  def description # :nodoc:
+    "#{@checked}\u2713 #{@downloaded}\u2913 #{@failed}\u20E0 #{super}"
+  end
+
   def download name
+    @checked += 1
     gem_name = "#{name}.gem"
 
     if gem_exists? gem_name then
@@ -62,11 +84,14 @@ class PowerMitten::GemDownloader < PowerMitten::Node
       @gem_queue.push name
 
       info "#{gem_name} downloaded"
+
+      @downloaded += 1
     else
       @gem_name_queue.push name
       @swift.delete_object @gems_container, gem_name
 
       info "#{gem_name} download failed"
+      @failed += 1
     end
   end
 
@@ -93,12 +118,16 @@ class PowerMitten::GemDownloader < PowerMitten::Node
   end
 
   def get_queues
-    @gem_name_queue = get_queue :gem_name_queue
-    @gem_queue      = get_queue :gem_queue
+    @gem_name_queue = get_queue 'gem_name'
+    @gem_queue      = get_queue 'gem'
   end
 
   def run
     super do
+      @checked    = 0
+      @downloaded = 0
+      @failed     = 0
+
       swift = connect_swift
 
       swift.create_container @gems_container

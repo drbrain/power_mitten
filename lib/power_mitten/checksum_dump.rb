@@ -15,8 +15,8 @@ class PowerMitten::ChecksumDump < PowerMitten::Node
   end
 
   def get_queues
-    @md5_queue    = get_queue :md5_queue
-    @sha512_queue = get_queue :sha512_queue
+    @md5_queue    = get_queue 'md5'
+    @sha512_queue = get_queue 'sha512'
   end
 
   def run

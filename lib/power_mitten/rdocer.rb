@@ -27,7 +27,7 @@ class PowerMitten::RDocer < PowerMitten::Node
   end
 
   def add_gems
-    add_gems_mutex = get_mutex :add_gems
+    add_gems_mutex = get_mutex 'add_gems'
 
     add_gems_mutex.synchronize do
       break unless @gem_queue.empty?
@@ -61,8 +61,8 @@ class PowerMitten::RDocer < PowerMitten::Node
   end
 
   def get_queues
-    @gem_queue         = get_queue :gem_queue
-    @rdoc_result_queue = get_queue :rdoc_result_queue
+    @gem_queue         = get_queue 'gem'
+    @rdoc_result_queue = get_queue 'rdoc_result'
   end
 
   def get_gemspec gem_file

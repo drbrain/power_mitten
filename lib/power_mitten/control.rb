@@ -7,6 +7,7 @@ class PowerMitten::Control < PowerMitten::Node
   config.maximum_workers = 1
 
   attr_reader :services
+  attr_reader :threads
 
   def self.run argv = ARGV
     options = parse_args argv
@@ -86,6 +87,10 @@ class PowerMitten::Control < PowerMitten::Node
     info "added #{klass.name} #{name}"
   end
 
+  def description # :nodoc:
+    "#{super}, #{@threads.size} children"
+  end
+
   ##
   # Registers +service+ with +name+ to the control node.
 
@@ -98,7 +103,7 @@ class PowerMitten::Control < PowerMitten::Node
   end
 
   def run
-    control_service = service :control, control_hosts, 1
+    control_service = service 'control', control_hosts, 1
 
     info "control registered at #{control_service.ring_server.__drburi}"
 

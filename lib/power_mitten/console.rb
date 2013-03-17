@@ -1,4 +1,5 @@
 require 'curses'
+require 'io/console'
 
 class PowerMitten::Console < PowerMitten::Node
 
@@ -11,7 +12,22 @@ class PowerMitten::Console < PowerMitten::Node
     @queue_stats = Hash.new 0
 
     @wait = 2.0
-    @type = 'Irb' if @localhost
+    @type = 'Console' if @localhost
+  end
+
+  def collate_services services
+    collated = Hash.new { |h, k| h[k] = [] }
+
+    services.each do |_, name, service, _|
+      case name
+      when /(Mutex|Queue)-/ then
+        collated[$1] << [name, service]
+      else
+        collated[name] << [name, service]
+      end
+    end
+
+    collated
   end
 
   ##
@@ -21,25 +37,17 @@ class PowerMitten::Console < PowerMitten::Node
     Curses.init_screen
     @window = Curses::Window.new 0, 0, 0, 0
 
+    trap 'WINCH' do
+      rows, cols = IO.console.winsize
+      Curses.resizeterm rows, cols
+      @window.resize    rows, cols
+    end
+
     loop do
       @window.clear
       @window.setpos 0, 0
 
-      @control.services.sort_by do |class_name, _|
-        class_name
-      end.each do |class_name, names|
-        next if names.empty?
-        @window.setpos @window.cury, 0
-
-        @window.addstr "#{class_name}:"
-        @window.setpos @window.cury + 1, 2
-
-        names.sort_by do |name, _|
-          name
-        end.each do |name, service|
-          show class_name, name, service
-        end
-      end
+      update
 
       @window.refresh
 
@@ -50,43 +58,118 @@ class PowerMitten::Console < PowerMitten::Node
     Curses.close_screen
   end
 
+  def live_services services
+    alive = services.select do |_, _, service,|
+      begin
+        if DRb::DRbObject === service then
+          service.send :method_missing, :object_id
+        else
+          true
+        end
+      rescue DRb::DRbConnError
+      end
+    end
+  end
+
   def run
     super do
       console
     end
   end
 
-  def show class_name, name, service
-    begin
-      object = service.object
-    rescue DRb::DRbConnError
-      return
+  def show_line line, indent = nil
+    @window.setpos @window.cury, indent if indent
+    @window.addstr line
+    @window.setpos @window.cury + 1, 0
+  end
+
+  def show_nodes group_name, nodes
+    nodes.each do |name, node|
+      begin
+        here = nil
+
+        case name
+        when 'Mitten-control' then
+          show_line "control #{node.description}"
+        when /^Mitten-/ then
+          name = $'
+
+          here = ' (me)' if self == node
+
+          show_line "#{name} #{node.description}#{here}"
+        else
+          show_line group_name
+        end
+      rescue DRb::DRbConnError
+      end
     end
+  end
 
-    case class_name
-    when 'Queue' then
-      last_size = @queue_stats[name]
+  def show_services group_name, services
+    @window.setpos @window.cury, 0
 
-      size = object.size
-      delta = size - last_size
-      items_per_second = delta / @wait
+    show_line "#{group_name}:"
 
-      str = "%s %d items %d waiting %+d (%0.1f/s)" % [
-        name, size, object.num_waiting, delta, items_per_second
-      ]
+    services.each do |name, service|
+      case name
+      when /^Queue-/ then
+        name = $'
+        last_size = @queue_stats[name]
 
-      @window.addstr str
+        queue = service
 
-      @queue_stats[name] = size
-    when 'Mutex' then
-      locked = object.locked? ? 'locked' : 'unlocked'
+        size = queue.size
+        delta = size - last_size
+        items_per_second = delta / @wait
 
-      @window.addstr "#{name} #{locked}"
-    else
-      @window.addstr name
+        str = "%s %d items %d waiting %+d (%0.1f/s)" % [
+          name, size, queue.num_waiting, delta, items_per_second
+        ]
+
+        show_line str, 2
+
+        @queue_stats[name] = size
+      when /Mutex-/ then
+        name = $'
+        locked = service.locked? ? 'locked' : 'unlocked'
+
+        show_line "#{name} #{locked}", 2
+      else
+        show_line "#{name} [unknown]", 2
+      end
     end
+  end
 
-    @window.setpos @window.cury + 1, 2
+  def sort_services services
+    services.sort_by do |_, name,|
+      case name
+      when 'Mitten-control' then
+        ''
+      else
+        name
+      end
+    end
+  end
+
+  def update
+    alive = live_services services
+
+    sorted = sort_services alive
+
+    collated = collate_services sorted
+
+    collated.each do |group_name, services|
+      update_service group_name, services
+    end
+  end
+
+  def update_service group_name, services
+    case group_name
+    when /^Mitten-/ then
+      show_nodes group_name, services
+    when 'Mutex', 'Queue' then
+      show_services group_name, services
+    end
   end
 
 end

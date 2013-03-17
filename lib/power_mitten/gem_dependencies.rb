@@ -18,7 +18,7 @@ class PowerMitten::GemDependencies < PowerMitten::Node
   end
 
   def add_gems
-    add_gems_mutex = get_mutex :add_gems
+    add_gems_mutex = get_mutex 'add_gems'
 
     add_gems_mutex.synchronize do
       break unless @gem_queue.empty?
@@ -52,8 +52,8 @@ class PowerMitten::GemDependencies < PowerMitten::Node
   end
 
   def get_queues
-    @gem_queue              = get_queue :gem_queue
-    @gem_dependencies_queue = get_queue :gem_dependencies_queue
+    @gem_queue              = get_queue 'gem'
+    @gem_dependencies_queue = get_queue 'gem_dependencies'
   end
 
   def run
