@@ -1,28 +1,79 @@
 = power_mitten
 
-home :: https://github.com/drbrain/master
-rdoc :: http://docs.seattlerb.org/master
-bugs :: https://github.com/drbrain/master/issues
+home :: https://github.com/att-cloud/power_mitten
+bugs :: https://github.com/att-cloud/power_mitten/issues
 
 == Description
 
-FIX (describe your package)
+A DRb-based cloud processing toolkit.
 
-== Features and Problems
+== Features
 
-* FIX (list of features or problems)
+* DRb-based multiprocess coordination
+* Runs on OpenStack or locally
+* Logs to syslog
 
-== Synopsis
+== Running Locally
 
-  FIX (code sample of usage)
+power_mitten uses the +mitten+ executable to control processes.  The +mitten+
+executable depends upon the <code>~/.power_mitten</code> configuration file.
 
-== Requirements
+At this time it must contain OpenStack and swift credential information even
+when running locally.  Use this dummy configuration:
 
-* FIX (list of requirements)
+  openstack_auth_url: https://auth.iad1.attcompute.com/v2.0/tokens
+  openstack_tenant:   TENANT
+  openstack_username: USERNAME
+  openstack_api_key:  PASSWORD
+  swift_uri:      https://data.iad1.attstorage.com/auth/
+  swift_username: COLLECTION:USERNAME
+  swift_key:      PASSWORD
+
+First, start a control node:
+
+  $ mitten startup --type Control --localhost
+
+All +mitten+ processes log to syslog.  On OS X you can use Console.app to see
+these logs.
+
+The control node coordinates shared resources such as mutexes and queues.
+Alongside the control node is a Rinda:RingServer which other mitten services
+to find each other.
+
+When using <code>mitten startup</code> locally you must give it a type.  When
+run in the cloud +mitten+ automatically determines this from the VM name.
+
+You can then start the console:
+
+  $ mitten console --localhost
+
+This will show you all the running processes and information about their
+state.  (If you start the console first it will wait for a control node.)
+
+You will see output similar to this:
+
+  control pid 62724 at kault, 29572 RSS, 0 children
+  Console pid 63498 at kault, 40048 RSS (me)
+  RingServer 3✓ 3⤓ 0☠ pid 62725 at kault, 29764 RSS
+
+To start a +mitten+ task give the task name as the type for +startup+ along
+with the number of workers to start:
+
+  $ mitten startup --type YourTask --localhost --workers 1
+
+This will start one process of YourTask.  +mitten+ will manage multiple
+workers doing the same task if you tell it to launch more.
+
+To help debug your task, run it with the <code>--once</code> option:
+
+  $ mitten startup --type YourTask --localhost --workers 1 --once
+
+Ordinarily +mitten+ will restart your task upon exceptions, but with
+<code>--once</code> it will exit instead.
 
 == Install
 
-  sudo gem install master
+  sudo gem install power_mitten
 
 == Developers
 
@@ -30,31 +81,10 @@ After checking out the source, run:
 
   $ rake newb
 
-This task will install any missing dependencies, run the tests/specs,
-and generate the RDoc.
+This task will install any missing dependencies, run the tests and generate
+the RDoc.
 
 == License
 
-(The MIT License)
-
-Copyright (c) Eric Hodel
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Copyright (c) AT&T
 
