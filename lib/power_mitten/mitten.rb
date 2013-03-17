@@ -30,13 +30,21 @@ class PowerMitten::Mitten
   end
 
   def self.parse_args argv
+    command = argv.shift
+
     options = {
-      command:       nil,
+      command:       command,
       configuration: File.expand_path('~/.power_mitten'),
       daemon:        false,
       type:          nil,
       workers:       0,
     }
+
+    case command
+    when 'console', 'irb' then
+      options[:type]    = command.upcase
+      options[:workers] = 1
+    end
 
     OptionParser.accept File do |value|
       raise OptionParser::InvalidArgument, value unless
@@ -71,10 +79,14 @@ class PowerMitten::Mitten
 
     op.parse argv
 
-    options[:command] = argv.shift unless argv.empty?
-
-    abort op.to_s unless options[:command]
+    abort op.to_s unless command
+    abort op.to_s if command.start_with? '-'
     abort op.to_s if options[:configuration].empty?
+
+    case options[:type]
+    when 'Control' then
+      options[:workers] = 1
+    end
 
     options
   end
