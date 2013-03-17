@@ -260,7 +260,7 @@ class PowerMitten::Node
 
   def register object, name
     service = RingyDingy.new object, name, nil, control_hosts
-    service.check_every = 1
+    service.check_every = 10
     service.run :first_register
   end
 
