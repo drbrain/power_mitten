@@ -5,6 +5,16 @@ class PowerMitten::RingServer < PowerMitten::Node
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
+  self.label_order = [
+    :service_count,
+    :registrations,
+    :expirations,
+  ] + PowerMitten::Node.label_order
+
+  describe_label :service_count, "%d\u2713", ['Count',      '%5d']
+  describe_label :registrations, "%d\u2913", ['Registered', '%5d']
+  describe_label :expirations,   "%d\u2620", ['Expired',    '%5d']
+
   attr_reader :expirations
   attr_reader :registrations
   attr_reader :service_registry
@@ -20,10 +30,13 @@ class PowerMitten::RingServer < PowerMitten::Node
   end
 
   def description # :nodoc:
-    service_count = @service_registry.read_all([:name, nil, nil, nil]).size
+    super do |description|
+      service_count = @service_registry.read_all([:name, nil, nil, nil]).size
 
-    "#{service_count}\u2713 #{@registrations}\u2913 #{@expirations}\u2620 " +
-      super
+      description[:service_count] = service_count
+      description[:registrations] = @registrations
+      description[:expirations]   = @expirations
+    end
   end
 
   def run

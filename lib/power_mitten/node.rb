@@ -13,12 +13,90 @@ class PowerMitten::Node
 
   @fog = nil
 
+  @label_orders = {}
+  @labels = Hash.new { |h, klass| h[klass] = {} }
+
+  class << self
+    attr_reader :label_orders # :nodoc:
+    attr_reader :labels # :nodoc:
+  end
+
   attr_reader :swift
   attr_accessor :level # :nodoc:
 
   def self.fog
     @fog
   end
+
+  ##
+  # Returns a sprintf format string for +field+ when used to display an
+  # aggregate entry.
+
+  def self.aggregate_description field
+    label_descriptions[field].first
+  end
+
+  ##
+  # Returns a field, column label and sprintf format string for the
+  # labels of this node in label order.
+
+  def self.column_descriptions
+    label_order.map do |field|
+      [field].concat label_descriptions[field].last
+    end
+  end
+
+  ##
+  # Describes the +field+ in the Node's #description with the given
+  # +aggregate+ and +column+ formats.
+  #
+  # These are the default labels for every node:
+  #
+  #   describe_label :RSS,      '%7d RSS', ['RSS KB',   '%8d', 8]
+  #   describe_label :hostname, '%s',      ['hostname', '%s']
+  #   describe_label :pid,      'pid %5d', ['PID',      '%5d', 5]
+  #
+  # The +field+ is returned by #description and its order of display is set
+  # by ::label_order=.  The +column+ description includes the column name, the
+  # sprintf format string for the column and the field width.  If the column
+  # size is omitted the column will be automatically sized based on the
+  # largest column (or column title).
+
+  def self.describe_label field, aggregate, column
+    column << 0 if column.size == 2
+
+    PowerMitten::Node.labels[self][field] = [aggregate, column]
+  end
+
+  ##
+  # Descriptions for labels from the current class.  Use aggregate_description
+  # and column_descriptions instead.
+
+  def self.label_descriptions # :nodoc:
+    PowerMitten::Node.labels[PowerMitten::Node].merge \
+      PowerMitten::Node.labels[self]
+  end
+
+  ##
+  # The order labels are displayed on the console.  Define with label_order=
+
+  def self.label_order
+    PowerMitten::Node.label_orders[self] ||
+      PowerMitten::Node.label_orders[PowerMitten::Node]
+  end
+
+  ##
+  # Sets the order labels are displayed on the console.
+
+  def self.label_order= order
+    PowerMitten::Node.label_orders[self] = order
+  end
+
+  self.label_order = [:pid, :hostname, :RSS]
+
+  describe_label :RSS,      '%7d RSS', ['RSS KB',   '%8d', 8]
+  describe_label :hostname, '%s',      ['Hostname', '%s']
+  describe_label :pid,      'pid %5d', ['PID',      '%5d', 5]
 
   def self.short_name
     name.split('::').last
@@ -109,11 +187,33 @@ class PowerMitten::Node
     @syslog.debug '%s', message
   end
 
+  ##
+  # Returns a hash that describes this node for the Console.  A node may
+  # override this to return additional information, but be sure to also
+  # describe the labels:
+  #
+  #   describe_label :checked, "%d\u2713", ['checked', '%5d']
+  #
+  #   def description # :nodoc:
+  #     super do |description|
+  #       description[:checked] = @checked
+  #     end
+  #   end
+
   def description
     rss = nil
 
-    description = "pid #{$$} at #{host_name}"
-    description << ", #{rss} RSS" if rss = resident_set_size
+    description = {
+      klass:    self.class,
+      hostname: hostname,
+      pid:      $$,
+    }
+
+    description[:RSS] = rss if rss = resident_set_size
+
+    yield description if block_given?
+
+    description
   end
 
   def error message
@@ -195,7 +295,7 @@ class PowerMitten::Node
   ##
   # The DNS name of where this node is running
 
-  def host_name
+  def hostname
     Socket.gethostname.split('.', 2).first
   end
 

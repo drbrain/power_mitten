@@ -1,18 +1,18 @@
-require 'curses'
-require 'io/console'
-
 class PowerMitten::Console < PowerMitten::Node
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
   def initialize options
+    require 'curses'
+    require 'io/console'
+    require 'power_mitten/console/row_formatter'
+
     super options
 
-    @queue_stats = Hash.new 0
-
-    @wait = 2.0
-    @type = 'Console' if @localhost
+    @row_formatters = nil
+    @queue_stats    = nil
+    @wait           = 2.0
   end
 
   def collate_services services
@@ -34,8 +34,10 @@ class PowerMitten::Console < PowerMitten::Node
   # Displays a view of the active services on the control node
 
   def console
+    reinitialize
+
     Curses.init_screen
-    @window = Curses::Window.new 0, 0, 0, 0
+    @window         = Curses::Window.new 0, 0, 0, 0
 
     trap 'WINCH' do
       rows, cols = IO.console.winsize
@@ -58,6 +60,15 @@ class PowerMitten::Console < PowerMitten::Node
     Curses.close_screen
   end
 
+  def get_descriptions items
+    items.map do |_, node|
+      begin
+        node.description
+      rescue DRb::DRbConnError
+      end
+    end.compact
+  end
+
   def live_services services
     alive = services.select do |_, _, service,|
       begin
@@ -69,6 +80,20 @@ class PowerMitten::Console < PowerMitten::Node
       rescue DRb::DRbConnError
       end
     end
+  end
+
+  def reinitialize
+    @queue_stats    = Hash.new 0
+    @row_formatters = {}
+  end
+
+  ##
+  # Retrieves a row formatter for the Node +description+ belongs to
+
+  def row_formatter_for description
+    klass = description[:klass]
+
+    @row_formatters[klass] ||= PowerMitten::Console::RowFormatter.new klass
   end
 
   def run
@@ -84,25 +109,27 @@ class PowerMitten::Console < PowerMitten::Node
   end
 
   def show_nodes group_name, nodes
-    nodes.each do |name, node|
-      begin
-        here = nil
+    /^Mitten-(?<short_name>.*)/ =~ group_name
 
-        case name
-        when 'Mitten-control' then
-          show_line "control #{node.description}"
-        when /^Mitten-/ then
-          name = $'
+    groups = nodes.group_by { |name,| name }
 
-          here = ' (me)' if self == node
+    groups.each_value do |items|
+      descriptions = get_descriptions items
 
-          show_line "#{name} #{node.description}#{here}"
-        else
-          show_line group_name
-        end
-      rescue DRb::DRbConnError
+      next if descriptions.empty?
+
+      row_formatter = row_formatter_for descriptions.first
+
+      lines = row_formatter.format descriptions
+
+      lines.each_with_index do |line, index|
+        line << " - #{short_name}" if index.zero?
+        show_line line
       end
     end
+  end
+
+  def show_nodes_aggregate group_name, nodes
   end
 
   def show_services group_name, services
@@ -166,7 +193,11 @@ class PowerMitten::Console < PowerMitten::Node
   def update_service group_name, services
     case group_name
     when /^Mitten-/ then
-      show_nodes group_name, services
+      if services.size > 2 then
+        show_nodes_aggregate group_name, services
+      else
+        show_nodes group_name, services
+      end
     when 'Mutex', 'Queue' then
       show_services group_name, services
     end

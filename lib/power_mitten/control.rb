@@ -6,6 +6,10 @@ class PowerMitten::Control < PowerMitten::Node
   config.add_service PowerMitten::RingServer
   config.maximum_workers = 1
 
+  self.label_order = PowerMitten::Node.label_order + [:children]
+
+  describe_label :children, '%2d children', ['Children', '%2d']
+
   attr_reader :services
   attr_reader :threads
 
@@ -88,7 +92,9 @@ class PowerMitten::Control < PowerMitten::Node
   end
 
   def description # :nodoc:
-    "#{super}, #{@threads.size} children"
+    super do |description|
+      description[:children] = @threads.size
+    end
   end
 
   ##

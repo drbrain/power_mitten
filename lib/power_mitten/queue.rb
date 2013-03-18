@@ -3,6 +3,10 @@ class PowerMitten::Queue < PowerMitten::Node
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
+  self.label_order = [:name] + PowerMitten::Node.label_order
+
+  describe_label :name, '%s', ['Name', '%s']
+
   attr_reader :name
   attr_reader :queue
 
@@ -15,9 +19,11 @@ class PowerMitten::Queue < PowerMitten::Node
   end
 
   def description # :nodoc:
-    _, name = @name.split '-', 2
+    super do |description|
+      _, name = @name.split '-', 2
 
-    "#{name}, #{super}"
+      description[:name] = name
+    end
   end
 
   def run
