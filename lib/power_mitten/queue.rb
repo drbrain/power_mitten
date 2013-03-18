@@ -1,9 +1,9 @@
-class PowerMitten::Queue < PowerMitten::Node
+class PowerMitten::Queue < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
-  self.label_order = [:name] + PowerMitten::Node.label_order
+  self.label_order = [:name] + PowerMitten::Task.label_order
 
   describe_label :name, '%s', ['Name', '%s']
 

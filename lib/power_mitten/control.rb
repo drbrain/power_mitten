@@ -1,12 +1,12 @@
 require 'thread'
 
-class PowerMitten::Control < PowerMitten::Node
+class PowerMitten::Control < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.add_service PowerMitten::RingServer
   config.maximum_workers = 1
 
-  self.label_order = PowerMitten::Node.label_order + [:children]
+  self.label_order = PowerMitten::Task.label_order + [:children]
 
   describe_label :children, '%2d children', ['Children', '%2d']
 
@@ -35,7 +35,7 @@ class PowerMitten::Control < PowerMitten::Node
   end
 
   ##
-  # Adds a new Mutex with +name+ to the control node.  Returns +true+ if the
+  # Adds a new Mutex with +name+ to the control task.  Returns +true+ if the
   # Mutex was created, +false+ if it already exists.
 
   def add_mutex name
@@ -43,7 +43,7 @@ class PowerMitten::Control < PowerMitten::Node
   end
 
   ##
-  # Adds a new Queue with +name+ to the control node.  Returns +true+ if the
+  # Adds a new Queue with +name+ to the control task.  Returns +true+ if the
   # Queue was created, +false+ if it already exists.
 
   def add_queue name
@@ -68,7 +68,7 @@ class PowerMitten::Control < PowerMitten::Node
   end
 
   ##
-  # Adds service +klass+ with +name+ to the control node.  Returns +true+ if
+  # Adds service +klass+ with +name+ to the control task.  Returns +true+ if
   # a named instance of +klass+ was added, +false+ if it already exists.
 
   def add_service klass, name
@@ -98,7 +98,7 @@ class PowerMitten::Control < PowerMitten::Node
   end
 
   ##
-  # Registers +service+ with +name+ to the control node.
+  # Registers +service+ with +name+ to the control task.
 
   def register_service klass, service, name
     @services_mutex.synchronize do

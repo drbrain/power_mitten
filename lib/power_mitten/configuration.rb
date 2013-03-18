@@ -1,6 +1,6 @@
 class PowerMitten::Configuration
 
-  @node_types = {}
+  @task_types = {}
 
   attr_accessor :cpu_multiplier
   attr_accessor :maximum_workers
@@ -10,13 +10,13 @@ class PowerMitten::Configuration
   def self.new klass
     config = super klass
 
-    @node_types[klass.short_name] = config
+    @task_types[klass.short_name] = config
 
     config
   end
 
   def self.services_for vm_name
-    configuration = @node_types.each_value.find do |config|
+    configuration = @task_types.each_value.find do |config|
       /\A#{Regexp.escape config.name}/ =~ vm_name
     end
 
@@ -26,7 +26,7 @@ class PowerMitten::Configuration
   end
 
   def self.workers_for klass, vcpus
-    config = @node_types[klass.short_name]
+    config = @task_types[klass.short_name]
 
     cpu_multiplier  = config.cpu_multiplier
     maximum_workers = config.maximum_workers

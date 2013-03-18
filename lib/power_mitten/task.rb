@@ -6,7 +6,7 @@ require 'resolv/open_stack'
 require 'ringy_dingy'
 require 'syslog'
 
-class PowerMitten::Node
+class PowerMitten::Task
 
   extend  PowerMitten::FogUtilities
   include PowerMitten::FogUtilities
@@ -38,7 +38,7 @@ class PowerMitten::Node
 
   ##
   # Returns a field, column label and sprintf format string for the
-  # labels of this node in label order.
+  # labels of this task in label order.
 
   def self.column_descriptions
     label_order.map do |field|
@@ -47,10 +47,10 @@ class PowerMitten::Node
   end
 
   ##
-  # Describes the +field+ in the Node's #description with the given
+  # Describes the +field+ in the Task's #description with the given
   # +aggregate+ and +column+ formats.
   #
-  # These are the default labels for every node:
+  # These are the default labels for every task:
   #
   #   describe_label :RSS,      '%7d RSS', ['RSS KB',   '%8d', 8]
   #   describe_label :hostname, '%s',      ['hostname', '%s']
@@ -65,7 +65,7 @@ class PowerMitten::Node
   def self.describe_label field, aggregate, column
     column << 0 if column.size == 2
 
-    PowerMitten::Node.labels[self][field] = [aggregate, column]
+    PowerMitten::Task.labels[self][field] = [aggregate, column]
   end
 
   ##
@@ -73,23 +73,23 @@ class PowerMitten::Node
   # and column_descriptions instead.
 
   def self.label_descriptions # :nodoc:
-    PowerMitten::Node.labels[PowerMitten::Node].merge \
-      PowerMitten::Node.labels[self]
+    PowerMitten::Task.labels[PowerMitten::Task].merge \
+      PowerMitten::Task.labels[self]
   end
 
   ##
   # The order labels are displayed on the console.  Define with label_order=
 
   def self.label_order
-    PowerMitten::Node.label_orders[self] ||
-      PowerMitten::Node.label_orders[PowerMitten::Node]
+    PowerMitten::Task.label_orders[self] ||
+      PowerMitten::Task.label_orders[PowerMitten::Task]
   end
 
   ##
   # Sets the order labels are displayed on the console.
 
   def self.label_order= order
-    PowerMitten::Node.label_orders[self] = order
+    PowerMitten::Task.label_orders[self] = order
   end
 
   self.label_order = [:pid, :hostname, :RSS]
@@ -188,7 +188,7 @@ class PowerMitten::Node
   end
 
   ##
-  # Returns a hash that describes this node for the Console.  A node may
+  # Returns a hash that describes this task for the Console.  A task may
   # override this to return additional information, but be sure to also
   # describe the labels:
   #
@@ -293,7 +293,7 @@ class PowerMitten::Node
   end
 
   ##
-  # The DNS name of where this node is running
+  # The DNS name of where this task is running
 
   def hostname
     Socket.gethostname.split('.', 2).first
@@ -304,7 +304,7 @@ class PowerMitten::Node
   end
 
   ##
-  # Returns the name of this node which may have been overridden by the
+  # Returns the name of this task which may have been overridden by the
   # +--type+ command-line option.
 
   def local_name
@@ -316,7 +316,7 @@ class PowerMitten::Node
   end
 
   ##
-  # The process ID of this node
+  # The process ID of this task
 
   def pid
     $$

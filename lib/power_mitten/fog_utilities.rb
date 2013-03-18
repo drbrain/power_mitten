@@ -32,14 +32,14 @@ module PowerMitten::FogUtilities
   end
 
   ##
-  # Returns the name of this node according to OpenStack
+  # Returns the name of this task according to OpenStack
 
   def local_name
     local_vm.name
   end
 
   ##
-  # Returns the VM for this node
+  # Returns the VM for this task
 
   def local_vm
     local_vm = fog.servers.find do |vm|
@@ -58,7 +58,7 @@ module PowerMitten::FogUtilities
   end
 
   ##
-  # Returns the number of VCPUs for this node
+  # Returns the number of VCPUs for this task
 
   def local_vcpus
     flavor_id = local_vm.flavor['id']

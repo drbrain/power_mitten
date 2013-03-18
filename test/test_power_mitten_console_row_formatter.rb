@@ -11,7 +11,7 @@ class TestPowerMittenConsoleRowFormatter < PowerMitten::TestCase
       { pid: 12345, hostname: 'very-long-name', RSS: 24813, test: 1 },
     ]
 
-    @klass = PowerMitten::TestCase::TestNode
+    @klass = PowerMitten::TestCase::TestTask
     @rf = PowerMitten::Console::RowFormatter.new @klass
   end
 

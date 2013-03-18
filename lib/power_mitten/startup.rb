@@ -1,4 +1,4 @@
-class PowerMitten::Startup < PowerMitten::Node
+class PowerMitten::Startup < PowerMitten::Task
 
   def initialize options = {}
     super
@@ -14,7 +14,7 @@ class PowerMitten::Startup < PowerMitten::Node
   def run
     name = local_name
 
-    notice "this is a #{name} node"
+    notice "this is a #{name} task"
 
     services = PowerMitten::Configuration.services_for name
 

@@ -1,6 +1,6 @@
 require 'thread'
 
-class PowerMitten::Collect < PowerMitten::Node
+class PowerMitten::Collect < PowerMitten::Task
 
   def initialize options = {}
     super

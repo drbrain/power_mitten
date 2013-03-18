@@ -3,7 +3,7 @@ require 'minitest/autorun'
 
 class PowerMitten::TestCase < MiniTest::Unit::TestCase
 
-  class TestNode < PowerMitten::Node
+  class TestTask < PowerMitten::Task
     self.label_order = [:test, :pid, :hostname, :RSS]
 
     describe_label :test, 'test %d', ['Test', '%4d', 4]

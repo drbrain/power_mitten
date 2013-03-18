@@ -6,7 +6,7 @@ require 'pp'
 
 require 'power_mitten/configuration'
 require 'power_mitten/fog_utilities'
-require 'power_mitten/node'
+require 'power_mitten/task'
 require 'power_mitten/checksum_dump'
 require 'power_mitten/collect'
 require 'power_mitten/console'

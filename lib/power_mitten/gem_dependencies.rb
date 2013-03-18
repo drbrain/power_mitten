@@ -1,6 +1,6 @@
 require 'tempfile'
 
-class PowerMitten::GemDependencies < PowerMitten::Node
+class PowerMitten::GemDependencies < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8

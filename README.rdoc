@@ -29,15 +29,15 @@ when running locally.  Use this dummy configuration:
   swift_username: COLLECTION:USERNAME
   swift_key:      PASSWORD
 
-First, start a control node:
+First, start a control task:
 
   $ mitten startup --type Control --localhost
 
 All +mitten+ processes log to syslog.  On OS X you can use Console.app to see
 these logs.
 
-The control node coordinates shared resources such as mutexes and queues.
-Alongside the control node is a Rinda:RingServer which other mitten services
+The control task coordinates shared resources such as mutexes and queues.
+Alongside the control task is a Rinda:RingServer which other mitten services
 to find each other.
 
 When using <code>mitten startup</code> locally you must give it a type.  When
@@ -48,7 +48,7 @@ You can then start the console:
   $ mitten console --localhost
 
 This will show you all the running processes and information about their
-state.  (If you start the console first it will wait for a control node.)
+state.  (If you start the console first it will wait for a control task.)
 
 You will see output similar to this:
 

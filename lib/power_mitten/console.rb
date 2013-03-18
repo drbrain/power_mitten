@@ -1,4 +1,4 @@
-class PowerMitten::Console < PowerMitten::Node
+class PowerMitten::Console < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
@@ -31,7 +31,7 @@ class PowerMitten::Console < PowerMitten::Node
   end
 
   ##
-  # Displays a view of the active services on the control node
+  # Displays a view of the active services on the control task
 
   def console
     reinitialize
@@ -61,9 +61,9 @@ class PowerMitten::Console < PowerMitten::Node
   end
 
   def get_descriptions items
-    items.map do |_, node|
+    items.map do |_, task|
       begin
-        node.description
+        task.description
       rescue DRb::DRbConnError
       end
     end.compact
@@ -88,7 +88,7 @@ class PowerMitten::Console < PowerMitten::Node
   end
 
   ##
-  # Retrieves a row formatter for the Node +description+ belongs to
+  # Retrieves a row formatter for the Task +description+ belongs to
 
   def row_formatter_for description
     klass = description[:klass]
@@ -108,10 +108,10 @@ class PowerMitten::Console < PowerMitten::Node
     @window.setpos @window.cury + 1, 0
   end
 
-  def show_nodes group_name, nodes
+  def show_tasks group_name, tasks
     /^Mitten-(?<short_name>.*)/ =~ group_name
 
-    groups = nodes.group_by { |name,| name }
+    groups = tasks.group_by { |name,| name }
 
     groups.each_value do |items|
       descriptions = get_descriptions items
@@ -129,7 +129,7 @@ class PowerMitten::Console < PowerMitten::Node
     end
   end
 
-  def show_nodes_aggregate group_name, nodes
+  def show_tasks_aggregate group_name, tasks
   end
 
   def show_services group_name, services
@@ -194,9 +194,9 @@ class PowerMitten::Console < PowerMitten::Node
     case group_name
     when /^Mitten-/ then
       if services.size > 2 then
-        show_nodes_aggregate group_name, services
+        show_tasks_aggregate group_name, services
       else
-        show_nodes group_name, services
+        show_tasks group_name, services
       end
     when 'Mutex', 'Queue' then
       show_services group_name, services

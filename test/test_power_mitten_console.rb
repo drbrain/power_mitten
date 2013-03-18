@@ -13,13 +13,13 @@ class TestPowerMittenConsole < PowerMitten::TestCase
     @console.reinitialize
 
     description = {
-      klass: PowerMitten::TestCase::TestNode,
+      klass: PowerMitten::TestCase::TestTask,
     }
 
     row_formatter = @console.row_formatter_for description
 
     expected =
-      PowerMitten::Console::RowFormatter.new PowerMitten::TestCase::TestNode
+      PowerMitten::Console::RowFormatter.new PowerMitten::TestCase::TestTask
 
     assert_equal expected, row_formatter
   end

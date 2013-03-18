@@ -1,5 +1,5 @@
 ##
-# Formats rows of information from a node including automatically sizing
+# Formats rows of information from a task including automatically sizing
 # columns so everything aligns
 
 class PowerMitten::Console::RowFormatter
@@ -7,7 +7,7 @@ class PowerMitten::Console::RowFormatter
   attr_reader :klass # :nodoc:
 
   ##
-  # Creates a new RowFormatter using column information from Node +klass+
+  # Creates a new RowFormatter using column information from Task +klass+
 
   def initialize klass
     @klass = klass

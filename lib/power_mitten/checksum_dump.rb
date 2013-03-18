@@ -1,4 +1,4 @@
-class PowerMitten::ChecksumDump < PowerMitten::Node
+class PowerMitten::ChecksumDump < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1

@@ -1,7 +1,7 @@
 require 'irb'
 require 'pp'
 
-class PowerMitten::Irb < PowerMitten::Node
+class PowerMitten::Irb < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1

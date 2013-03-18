@@ -8,7 +8,7 @@ require 'uri'
 gem 'rdoc'
 require 'rdoc'
 
-class PowerMitten::RDocer < PowerMitten::Node
+class PowerMitten::RDocer < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 1.5

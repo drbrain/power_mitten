@@ -1,6 +1,6 @@
 require 'net/http/persistent'
 
-class PowerMitten::GemDownloader < PowerMitten::Node
+class PowerMitten::GemDownloader < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
@@ -9,7 +9,7 @@ class PowerMitten::GemDownloader < PowerMitten::Node
     :checked,
     :downloaded,
     :failed
-  ] + PowerMitten::Node.label_order
+  ] + PowerMitten::Task.label_order
 
   describe_label :checked,    "%d\u2713", ['Checked',    '%5d']
   describe_label :downloaded, "%d\u2913", ['Downloaded', '%5d']

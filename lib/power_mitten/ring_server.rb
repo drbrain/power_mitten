@@ -1,6 +1,6 @@
 require 'ringy_dingy/ring_server'
 
-class PowerMitten::RingServer < PowerMitten::Node
+class PowerMitten::RingServer < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
@@ -9,7 +9,7 @@ class PowerMitten::RingServer < PowerMitten::Node
     :service_count,
     :registrations,
     :expirations,
-  ] + PowerMitten::Node.label_order
+  ] + PowerMitten::Task.label_order
 
   describe_label :service_count, "%d\u2713", ['Count',      '%5d']
   describe_label :registrations, "%d\u2913", ['Registered', '%5d']

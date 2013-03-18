@@ -1,7 +1,7 @@
 require 'digest/md5'
 require 'digest/sha2'
 
-class PowerMitten::GemChecksummer < PowerMitten::Node
+class PowerMitten::GemChecksummer < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
