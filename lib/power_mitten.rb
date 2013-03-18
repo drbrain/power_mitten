@@ -2,8 +2,6 @@ module PowerMitten # :nodoc:
   VERSION = '1.0'
 end
 
-require 'pp'
-
 require 'power_mitten/configuration'
 require 'power_mitten/fog_utilities'
 require 'power_mitten/task'
