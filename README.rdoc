@@ -15,19 +15,7 @@ A DRb-based cloud processing toolkit.
 
 == Running Locally
 
-power_mitten uses the +mitten+ executable to control processes.  The +mitten+
-executable depends upon the <code>~/.power_mitten</code> configuration file.
-
-At this time it must contain OpenStack and swift credential information even
-when running locally.  Use this dummy configuration:
-
-  openstack_auth_url: https://auth.iad1.attcompute.com/v2.0/tokens
-  openstack_tenant:   TENANT
-  openstack_username: USERNAME
-  openstack_api_key:  PASSWORD
-  swift_uri:      https://data.iad1.attstorage.com/auth/
-  swift_username: COLLECTION:USERNAME
-  swift_key:      PASSWORD
+power_mitten uses the +mitten+ executable to control processes.
 
 First, start a control task:
 
@@ -70,6 +58,20 @@ To help debug your task, run it with the <code>--once</code> option:
 
 Ordinarily +mitten+ will restart your task upon exceptions, but with
 <code>--once</code> it will exit instead.
+
+The +mitten+ executable will load the <code>~/.power_mitten</code>
+configuration file.
+
+If the file exists it must contain OpenStack and swift credential information
+even when running locally.  Use this dummy configuration:
+
+  openstack_auth_url: https://auth.example/v2.0/tokens
+  openstack_tenant:   TENANT
+  openstack_username: USERNAME
+  openstack_api_key:  PASSWORD
+  swift_uri:      https://storage.example/auth/
+  swift_username: TENANT:USERNAME
+  swift_key:      PASSWORD
 
 == Install
 

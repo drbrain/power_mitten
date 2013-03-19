@@ -27,4 +27,5 @@ lib/power_mitten/test_case.rb
 lib/resolv/open_stack.rb
 test/test_power_mitten_console.rb
 test/test_power_mitten_console_row_formatter.rb
+test/test_power_mitten_mitten.rb
 test/test_power_mitten_task.rb

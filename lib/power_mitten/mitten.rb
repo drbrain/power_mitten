@@ -3,10 +3,18 @@
 
 class PowerMitten::Mitten
 
-  def self.load_configuration file = File.expand_path('~/.power_mitten')
+  ##
+  # Loads the configuration file from the +:configuration+ key in +options+
+  # (or ~/.power_mitten) if none is given) and merges the configuration there
+  # into +options+.
+
+  def self.load_configuration options
+    file          =
+      options[:configuration] || File.expand_path('~/.power_mitten')
     yaml          = File.read file
     configuration = Psych.load yaml
-    options       = {}
+
+    loaded        = {}
 
     %w[
       openstack_api_key
@@ -21,11 +29,15 @@ class PowerMitten::Mitten
       value = configuration[required_key]
       abort "missing #{required_key} in #{file}" unless value
 
-      options[required_key.intern] = value
+      loaded[required_key.intern] = value
     end
 
-    options[:swift_uri] = URI options[:swift_uri]
+    loaded[:swift_uri] = URI loaded[:swift_uri]
 
+    options.merge! loaded
+
+    options
+  rescue Errno::ENOENT
     options
   end
 
@@ -94,7 +106,7 @@ class PowerMitten::Mitten
   def self.run argv = ARGV
     options = parse_args argv
 
-    options.merge! load_configuration options[:configuration]
+    load_configuration options
 
     run_command options[:command], options
   end
