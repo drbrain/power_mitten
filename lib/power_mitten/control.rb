@@ -35,6 +35,25 @@ class PowerMitten::Control < PowerMitten::Task
   end
 
   ##
+  # Adds a Drip to the control task.
+
+  def add_drip
+    @services_mutex.synchronize do
+      begin
+        service = RingyDingy.find 'drip', control_hosts
+
+        return service
+      rescue RuntimeError # HACK update RingyDingy to have useful exceptions
+        options = @options.dup
+
+        start_service PowerMitten::Drip, 1, options
+
+        return RingyDingy::Lookup.new(control_hosts).wait_for 'drip'
+      end
+    end
+  end
+
+  ##
   # Adds a new Mutex with +name+ to the control task.  Returns +true+ if the
   # Mutex was created, +false+ if it already exists.
 

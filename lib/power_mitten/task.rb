@@ -278,6 +278,14 @@ class PowerMitten::Task
     @control
   end
 
+  def get_drip
+    drip = @control.add_drip
+
+    notice "found drip at #{drip.__drburi}"
+
+    drip
+  end
+
   def get_mutex name
     mutex_name = "Mutex-#{name}"
 

@@ -11,6 +11,7 @@ lib/power_mitten/configuration.rb
 lib/power_mitten/console.rb
 lib/power_mitten/console/row_formatter.rb
 lib/power_mitten/control.rb
+lib/power_mitten/drip.rb
 lib/power_mitten/fog_utilities.rb
 lib/power_mitten/gem_checksummer.rb
 lib/power_mitten/gem_dependencies.rb
