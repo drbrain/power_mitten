@@ -70,7 +70,7 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   def live_services services
-    alive = services.select do |_, _, service,|
+    services.select do |_, _, service,|
       begin
         if DRb::DRbObject === service then
           service.send :method_missing, :object_id

@@ -49,7 +49,7 @@ class PowerMitten::Control < PowerMitten::Task
   def add_queue name
     @services_mutex.synchronize do
       begin
-        service = RingyDingy.find name, control_hosts
+        RingyDingy.find name, control_hosts
       rescue RuntimeError # HACK update RingyDingy to have useful exceptions
         options = @options.dup
         options[:name] = name
