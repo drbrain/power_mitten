@@ -1,5 +1,5 @@
 require 'att/swift'
-require 'fog'
+require 'fog/openstack'
 require 'optparse'
 require 'psych'
 require 'resolv/open_stack'
