@@ -49,46 +49,46 @@ class PowerMitten::Control < PowerMitten::Task
   def add_queue name
     @services_mutex.synchronize do
       begin
-        RingyDingy.find name, control_hosts
-
-        return false
+        service = RingyDingy.find name, control_hosts
       rescue RuntimeError # HACK update RingyDingy to have useful exceptions
         options = @options.dup
         options[:name] = name
 
         start_service PowerMitten::Queue, 1, options
 
-        sleep 10 # HACK wait for Queue to register
-
-        RingyDingy.find name, control_hosts
+        return RingyDingy::Lookup.new(control_hosts).wait_for name
       end
     end
-
-    return true
   end
 
   ##
-  # Adds service +klass+ with +name+ to the control task.  Returns +true+ if
-  # a named instance of +klass+ was added, +false+ if it already exists.
+  # Returns the previously registered service of type +klass+ with the given
+  # +name+.
+  #
+  # If no service was registered, creates a new item by calling +new+ on the
+  # given +klass+ and returning the new instance.  When creating a new
+  # service the return will be delayed until the service is registered.
 
   def add_service klass, name
     class_name = klass.name
 
+    instance = nil
+
     @services_mutex.synchronize do
       instance = @services[class_name][name]
 
-      return false if instance
+      return instance if instance
 
       instance = klass.new
 
       service = register instance, name
 
       @services[class_name][name] = service
-
-      true
     end
 
-    info "added #{klass.name} #{name}"
+    notice "added #{klass.name} #{name}"
+
+    instance
   end
 
   def description # :nodoc:

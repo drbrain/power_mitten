@@ -178,7 +178,7 @@ class PowerMitten::Task
 
     raise "no control hosts found" if addresses.empty?
 
-    info "found control hosts #{addresses.join ', '}"
+    notice "found control hosts #{addresses.join ', '}"
 
     @control_hosts = addresses
   end
@@ -280,16 +280,22 @@ class PowerMitten::Task
 
   def get_mutex name
     mutex_name = "Mutex-#{name}"
-    @control.add_mutex mutex_name
 
-    RingyDingy.find mutex_name, control_hosts
+    mutex = @control.add_mutex mutex_name
+
+    notice "found #{mutex_name} at #{mutex.__drburi}"
+
+    mutex
   end
 
   def get_queue name
     queue_name = "Queue-#{name}"
-    @control.add_queue queue_name
 
-    RingyDingy.find queue_name, control_hosts
+    queue = @control.add_queue queue_name
+
+    notice "found #{queue_name} at #{queue.__drburi}"
+
+    queue
   end
 
   ##
