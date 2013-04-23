@@ -19,4 +19,5 @@ require 'power_mitten/mitten'
 require 'power_mitten/queue'
 require 'power_mitten/rdocer'
 require 'power_mitten/startup'
+require 'power_mitten/statistics'
 
