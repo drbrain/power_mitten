@@ -110,6 +110,32 @@ class PowerMitten::Control < PowerMitten::Task
     instance
   end
 
+  ##
+  # Looks up a Statistic with +name+ or creates a new one if none is
+  # registered.
+
+  def add_statistic name
+    @services_mutex.synchronize do
+      begin
+        # lookup again to avoid blocking on mutex 
+        service = RingyDingy.find name, control_hosts
+
+        return service if service
+      rescue RuntimeError
+        options = @options.dup
+        options[:name] = name
+
+        notice "starting #{name}"
+
+        start_service PowerMitten::Statistics, 1, options
+
+        notice "started #{name}, waiting for registration"
+
+        return RingyDingy::Lookup.new(control_hosts).wait_for name
+      end
+    end
+  end
+
   def description # :nodoc:
     super do |description|
       description[:children] = @threads.size
@@ -124,13 +150,13 @@ class PowerMitten::Control < PowerMitten::Task
       @services[klass.name][name] = service
     end
 
-    info "registered remote service #{klass.name} #{name} from #{service.__drburi}"
+    notice "registered remote service #{klass.name} #{name} from #{service.__drburi}"
   end
 
   def run
-    control_service = service 'control', control_hosts, 1
+    control_service = register self, 'Mitten-control'
 
-    info "control registered at #{control_service.ring_server.__drburi}"
+    notice "control registered at #{control_service.ring_server.__drburi}"
 
     trap 'INT'  do warn "INT";  DRb.stop_service; stop_services end
     trap 'TERM' do warn "TERM"; DRb.stop_service; stop_services end
