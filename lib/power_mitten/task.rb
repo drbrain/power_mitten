@@ -231,7 +231,9 @@ class PowerMitten::Task
   def find_control
     hosts = control_hosts
 
-    @control = @ring_lookup.find 'Mitten-control', hosts
+    @ring_lookup = RingyDingy::Lookup.new hosts
+
+    @control = @ring_lookup.find 'Mitten-control'
 
     hosts
   rescue => e
@@ -256,6 +258,9 @@ class PowerMitten::Task
       trap 'TERM', 'DEFAULT'
 
       $PROGRAM_NAME = "mitten #{service.short_name}"
+      # The thread was killed but the protocol wasn't closed, so do it
+      # manually.  This should be fixed in DRb.
+      DRb.current_server.instance_variable_get(:@protocol).close
       DRb.stop_service
       DRb.start_service
 
@@ -274,9 +279,7 @@ class PowerMitten::Task
 
     notice "found control at #{@control.__drburi}"
 
-    @ring_lookup = RingyDingy::Lookup.new control_hosts
-
-    @service = service local_name, hosts
+    @service = register self, "Mitten-#{local_name}"
 
     @control
   end
