@@ -10,12 +10,13 @@ class PowerMitten::Statistics < PowerMitten::Task
   config.maximum_workers = 1
 
   self.label_order = PowerMitten::Task.label_order + [
-    :items, :mean, :standard_deviation
+    :name, :items, :mean, :standard_deviation
   ]
 
-  describe_label :items,             '%6d',   ['Items',  '%6d', 6]
-  describe_label :mean,              '%6g',   ['Mean',   '%6g', 6]
-  describe_label :standard_devation, 'σ %6g', ['StdDev', '%6g', 3]
+  describe_label :name,               '%-s',   ['Name',   '%-s']
+  describe_label :items,              '%6d',   ['Items',  '%6d', 6]
+  describe_label :mean,               '%6g',   ['Mean',   '%6g', 6]
+  describe_label :standard_deviation, 'σ %6g', ['StdDev', '%6g', 6]
 
   ##
   # The mean (average) of the added values
@@ -68,10 +69,10 @@ class PowerMitten::Statistics < PowerMitten::Task
 
   def description # :nodoc:
     super do |description|
-      description[:name]               += "—#{@name}"
-      description[:items]               = @items
-      description[:mean]                = @mean
-      description[:standard_deviation]  = standard_deviation
+      description[:name]               = @name.sub 'Statistic-', ''
+      description[:items]              = @items
+      description[:mean]               = @mean
+      description[:standard_deviation] = standard_deviation
     end
   end
 
