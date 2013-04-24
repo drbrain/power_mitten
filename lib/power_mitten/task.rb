@@ -87,6 +87,10 @@ class PowerMitten::Task
 
   ##
   # Sets the order labels are displayed on the console.
+  #--
+  # TODO remove and use describe_label to automatically append to label_order.
+  # This will allow the standard items to always appear on the left and
+  # simplify creating tasks.
 
   def self.label_order= order
     PowerMitten::Task.label_orders[self] = order
@@ -121,7 +125,7 @@ class PowerMitten::Task
     @fog         = nil
     @control     = nil
     @level       = nil
-    @ring_finger = nil
+    @ring_lookup = nil
     @service     = nil
     @swift       = nil
     @syslog      =
@@ -227,7 +231,7 @@ class PowerMitten::Task
   def find_control
     hosts = control_hosts
 
-    @control = RingyDingy.find 'Mitten-control', hosts
+    @control = @ring_lookup.find 'Mitten-control', hosts
 
     hosts
   rescue => e
@@ -270,8 +274,7 @@ class PowerMitten::Task
 
     notice "found control at #{@control.__drburi}"
 
-    @ring_finger = Rinda::RingFinger.new control_hosts
-    RingyDingy::RingServer.ring_finger = @ring_finger
+    @ring_lookup = RingyDingy::Lookup.new control_hosts
 
     @service = service local_name, hosts
 
@@ -304,6 +307,20 @@ class PowerMitten::Task
     notice "found #{queue_name} at #{queue.__drburi}"
 
     queue
+  end
+
+  def get_statistic name
+    statistic_name = "Statistic-#{name}"
+
+    notice "looking up #{statistic_name}"
+
+    statistic = @ring_lookup.find name
+  rescue RuntimeError
+    statistic = @control.add_statistic statistic_name
+  ensure
+    notice "found #{statistic_name} at #{statistic.__drburi}"
+
+    statistic
   end
 
   ##
@@ -374,13 +391,7 @@ class PowerMitten::Task
 
   def register object, name
     service = RingyDingy.new object, name, nil, control_hosts
-    service.check_every = 10
-    service.run :first_register
-  end
-
-  def service name, broadcast, check_every = 1
-    service = RingyDingy.new self, "Mitten-#{name}", nil, broadcast
-    service.check_every = check_every
+    service.check_every = 60
     service.run :first_register
   end
 
