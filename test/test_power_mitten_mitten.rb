@@ -61,6 +61,7 @@ openstack_api_key:  PASSWORD
 swift_uri:      https://storage.example/auth/
 swift_username: TENANT:USERNAME
 swift_key:      PASSWORD
+other: value
       DOT_POWER_MITTEN
 
       File.write File.join(home, '.power_mitten'), dot_power_mitten
@@ -78,6 +79,8 @@ swift_key:      PASSWORD
         swift_uri:      URI('https://storage.example/auth/'),
         swift_username: 'TENANT:USERNAME',
         swift_key:      'PASSWORD',
+
+        'other' => 'value',
       }
 
       assert_equal expected, loaded

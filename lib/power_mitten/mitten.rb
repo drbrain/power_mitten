@@ -9,12 +9,10 @@ class PowerMitten::Mitten
   # into +options+.
 
   def self.load_configuration options
-    file          =
+    file   =
       options[:configuration] || File.expand_path('~/.power_mitten')
-    yaml          = File.read file
-    configuration = Psych.load yaml
-
-    loaded        = {}
+    yaml   = File.read file
+    loaded = Psych.load yaml
 
     %w[
       openstack_api_key
@@ -26,10 +24,10 @@ class PowerMitten::Mitten
       swift_username
       swift_key
     ].each do |required_key|
-      value = configuration[required_key]
+      value = loaded.delete required_key
       abort "missing #{required_key} in #{file}" unless value
 
-      loaded[required_key.intern] = value
+      loaded[required_key.intern] = value # this intern business is crap
     end
 
     loaded[:swift_uri] = URI loaded[:swift_uri]
