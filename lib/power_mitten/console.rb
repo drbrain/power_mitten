@@ -198,6 +198,8 @@ class PowerMitten::Console < PowerMitten::Task
       else
         show_tasks group_name, services
       end
+    when /^Statistic-/ then
+      show_tasks group_name, services
     when 'Mutex', 'Queue' then
       show_services group_name, services
     end
