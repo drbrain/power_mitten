@@ -40,7 +40,7 @@ class PowerMitten::Control < PowerMitten::Task
   def add_drip
     @services_mutex.synchronize do
       begin
-        service = RingyDingy.find 'drip', control_hosts
+        service = @ring_lookup.find 'drip'
 
         return service
       rescue RuntimeError # HACK update RingyDingy to have useful exceptions
@@ -48,7 +48,7 @@ class PowerMitten::Control < PowerMitten::Task
 
         start_service PowerMitten::Drip, 1, options
 
-        return RingyDingy::Lookup.new(control_hosts).wait_for 'drip'
+        return @ring_lookup.wait_for 'drip'
       end
     end
   end
@@ -68,14 +68,14 @@ class PowerMitten::Control < PowerMitten::Task
   def add_queue name
     @services_mutex.synchronize do
       begin
-        RingyDingy.find name, control_hosts
+        @ring_lookup.find name
       rescue RuntimeError # HACK update RingyDingy to have useful exceptions
         options = @options.dup
         options[:name] = name
 
         start_service PowerMitten::Queue, 1, options
 
-        return RingyDingy::Lookup.new(control_hosts).wait_for name
+        return @ring_lookup.wait_for name
       end
     end
   end
@@ -117,8 +117,8 @@ class PowerMitten::Control < PowerMitten::Task
   def add_statistic name
     @services_mutex.synchronize do
       begin
-        # lookup again to avoid blocking on mutex 
-        service = RingyDingy.find name, control_hosts
+        # lookup again in case it was just created
+        service = @ring_lookup.find name
 
         return service if service
       rescue RuntimeError
@@ -131,7 +131,7 @@ class PowerMitten::Control < PowerMitten::Task
 
         notice "started #{name}, waiting for registration"
 
-        return RingyDingy::Lookup.new(control_hosts).wait_for name
+        return @ring_lookup.wait_for name
       end
     end
   end
@@ -154,6 +154,8 @@ class PowerMitten::Control < PowerMitten::Task
   end
 
   def run
+    @ring_lookup = RingyDingy::Lookup.new control_hosts
+
     control_service = register self, 'Mitten-control'
 
     notice "control registered at #{control_service.ring_server.__drburi}"
