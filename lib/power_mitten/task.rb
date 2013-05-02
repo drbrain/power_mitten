@@ -258,9 +258,15 @@ class PowerMitten::Task
       trap 'TERM', 'DEFAULT'
 
       $PROGRAM_NAME = "mitten #{service.short_name}"
+
       # The thread was killed but the protocol wasn't closed, so do it
       # manually.  This should be fixed in DRb.
-      DRb.current_server.instance_variable_get(:@protocol).close
+      begin
+        server = DRb.current_server
+        server.instance_variable_get(:@protocol).close
+      rescue DRb::DRbServerNotFound
+      end
+
       DRb.stop_service
       DRb.start_service
 
