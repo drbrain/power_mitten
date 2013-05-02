@@ -10,6 +10,7 @@ class PowerMitten::Task
 
   extend  PowerMitten::FogUtilities
   include PowerMitten::FogUtilities
+  include DRb::DRbUndumped
 
   @fog = nil
 
