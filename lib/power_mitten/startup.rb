@@ -18,7 +18,9 @@ class PowerMitten::Startup < PowerMitten::Task
 
     services = PowerMitten::Configuration.services_for name
 
-    @threads = start_services services
+    @threads = []
+    
+    start_services services
 
     trap 'INT'  do stop_services end
     trap 'TERM' do stop_services end

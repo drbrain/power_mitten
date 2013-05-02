@@ -328,7 +328,11 @@ class PowerMitten::Task
   rescue RuntimeError
     statistic = @control.add_statistic statistic_name
   ensure
-    notice "found #{statistic_name} at #{statistic.__drburi}"
+    if statistic then
+      notice "found #{statistic_name} at #{statistic.__drburi}"
+    else
+      error "could not find or create #{statistic_name}"
+    end
 
     statistic
   end
@@ -419,7 +423,7 @@ class PowerMitten::Task
     ok_signals = Signal.list.values_at 'TERM', 'INT'
 
     workers.times.map do
-      Thread.new do
+      thread = Thread.new do
         while @running do
           pid = fork_child service, workers, options
 
@@ -433,6 +437,8 @@ class PowerMitten::Task
           break if ok_signals.include?(status.termsig)
         end
       end
+
+      @threads << thread
     end
   end
 
