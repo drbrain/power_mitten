@@ -1,18 +1,21 @@
-require 'irb'
-require 'pp'
+##
+# Attaches to an application as irb to allow inspection and debugging
 
 class PowerMitten::Irb < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
-  def initialize options = {}
+  def initialize options = {} # :nodoc:
     super
 
     @type = 'Irb' if @localhost
   end
 
-  def run
+  def run # :nodoc:
+    require 'irb'
+    require 'pp'
+
     puts <<-MESSAGE
 Welcome to mitten irb!
 

@@ -1,3 +1,6 @@
+##
+# An in-memory queue service
+
 class PowerMitten::Queue < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
@@ -7,8 +10,8 @@ class PowerMitten::Queue < PowerMitten::Task
 
   describe_label :name, '%s', ['Name', '%s']
 
-  attr_reader :name
-  attr_reader :queue
+  ##
+  # Creates a new queue using the +:name+ option in +options+
 
   def initialize options
     super
@@ -26,7 +29,7 @@ class PowerMitten::Queue < PowerMitten::Task
     end
   end
 
-  def run
+  def run # :nodoc:
     service = nil
 
     super do

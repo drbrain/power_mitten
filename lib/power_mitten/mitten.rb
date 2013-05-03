@@ -39,6 +39,9 @@ class PowerMitten::Mitten
     options
   end
 
+  ##
+  # Parsers command-line arguments in +argv+ and returns an options hash.
+
   def self.parse_args argv
     command = argv.shift
 
@@ -101,6 +104,10 @@ class PowerMitten::Mitten
     options
   end
 
+  ##
+  # Runs a task based on the contents of +argv+.  Used by the +mitten+
+  # executable.
+
   def self.run argv = ARGV
     options = parse_args argv
 
@@ -108,6 +115,9 @@ class PowerMitten::Mitten
 
     run_command options[:command], options
   end
+
+  ##
+  # Runs +command+ with +options+
 
   def self.run_command command, options
     case command

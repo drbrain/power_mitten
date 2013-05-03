@@ -1,9 +1,12 @@
+##
+# Monitors the active tasks and services and displays their statistics
+
 class PowerMitten::Console < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
-  def initialize options
+  def initialize options # :nodoc:
     require 'curses'
     require 'io/console'
     require 'power_mitten/console/row_formatter'
@@ -14,6 +17,9 @@ class PowerMitten::Console < PowerMitten::Task
     @queue_stats    = nil
     @wait           = 2.0
   end
+
+  ##
+  # Collates +services+ by name
 
   def collate_services services
     collated = Hash.new { |h, k| h[k] = [] }
@@ -60,6 +66,9 @@ class PowerMitten::Console < PowerMitten::Task
     Curses.close_screen
   end
 
+  ##
+  # Retrieves the descriptions for +items+ from each service
+
   def get_descriptions items
     items.map do |_, task|
       begin
@@ -68,6 +77,9 @@ class PowerMitten::Console < PowerMitten::Task
       end
     end.compact
   end
+
+  ##
+  # Filters +services+ for those that are still alive
 
   def live_services services
     services.select do |_, _, service,|
@@ -81,6 +93,10 @@ class PowerMitten::Console < PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Called this when the console reconnects to control to reset statistics and
+  # formatters.
 
   def reinitialize
     @queue_stats    = Hash.new 0
@@ -96,17 +112,23 @@ class PowerMitten::Console < PowerMitten::Task
     @row_formatters[klass] ||= PowerMitten::Console::RowFormatter.new klass
   end
 
-  def run
+  def run # :nodoc:
     super do
       console
     end
   end
+
+  ##
+  # Displays +line+ with an optional +indent+
 
   def show_line line, indent = nil
     @window.setpos @window.cury, indent if indent
     @window.addstr line
     @window.setpos @window.cury + 1, 0
   end
+
+  ##
+  # Shows the +tasks+ in +group_name+
 
   def show_tasks group_name, tasks
     /^Mitten-(?<short_name>.*)/ =~ group_name
@@ -131,6 +153,9 @@ class PowerMitten::Console < PowerMitten::Task
 
   def show_tasks_aggregate group_name, tasks
   end
+
+  ##
+  # Shows +services+ in +group_name+
 
   def show_services group_name, services
     @window.setpos @window.cury, 0
@@ -167,6 +192,9 @@ class PowerMitten::Console < PowerMitten::Task
     end
   end
 
+  ##
+  # Sorts services by name.  The control service is always at the top
+
   def sort_services services
     services.sort_by do |_, name,|
       case name
@@ -177,6 +205,9 @@ class PowerMitten::Console < PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Discovers and updates service descriptions
 
   def update
     alive = live_services services
@@ -189,6 +220,9 @@ class PowerMitten::Console < PowerMitten::Task
       update_service group_name, services
     end
   end
+
+  ##
+  # Updates the consoles for +services+ in +group_name+
 
   def update_service group_name, services
     case group_name

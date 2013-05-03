@@ -1,7 +1,28 @@
+##
+# Logs in to keystone every other second and records statistics on HTTP
+# connect, Keystone login time and total request time.
+#
+# Uses the keystone_username, keystone_password and keystone_tenant values
+# from the configuration file.
+
 class PowerMitten::KeystonePing < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
+
+  ##
+  # Creates a new KeystonePing service.  The service will use the following
+  # +options+:
+  #
+  # keystone_url::
+  #   The URL for keystone from your .novarc file.  There is no need to
+  #   manually add "/tokens" to the end as you must for fog.
+  # keystone_username::
+  #   Your username
+  # keystone_password::
+  #   Your password
+  # keystone_tenant::
+  #   The tenant for the username and password
 
   def initialize options
     require 'json'
@@ -42,6 +63,10 @@ class PowerMitten::KeystonePing < PowerMitten::Task
     JSON.dump keystone_login
   end
 
+  ##
+  # Logs in to keystone and records statistics for HTTP connect time, login
+  # time and total request time.
+
   def login
     request = Net::HTTP::Post.new @keystone_path
     request.body = @keystone_login
@@ -65,7 +90,7 @@ class PowerMitten::KeystonePing < PowerMitten::Task
     @total_time.add_value   complete_time  - start_time
   end
 
-  def run
+  def run # :nodoc:
     super do
       @connect_time = get_statistic 'Keystone Connect'
       @login_time   = get_statistic 'Keystone Login'

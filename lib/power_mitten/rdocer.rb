@@ -8,15 +8,15 @@ require 'uri'
 gem 'rdoc'
 require 'rdoc'
 
+##
+# Runs rdoc on gems in a swift container
+
 class PowerMitten::RDocer < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 1.5
 
-  attr_reader :gem_queue
-  attr_reader :rdoc_result_queue
-
-  def initialize options
+  def initialize options # :nodoc:
     super options
 
     @gem_queue         = nil
@@ -25,6 +25,13 @@ class PowerMitten::RDocer < PowerMitten::Task
     @gems_container   = 'gems'
     @result_container = "rdoc-#{RDoc::VERSION}"
   end
+
+  ##
+  # Reads the gem names from the swift container and adds them to the gem
+  # queue for processing.
+  #--
+  # TODO this code is shared amongst a couple tasks and should be moved to a
+  # separate service
 
   def add_gems
     add_gems_mutex = get_mutex 'add_gems'
@@ -37,6 +44,9 @@ class PowerMitten::RDocer < PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Downloads +gem_file+ into +dest_dir+
 
   def download gem_file, dest_dir
     digest = Digest::MD5.new
@@ -60,16 +70,24 @@ class PowerMitten::RDocer < PowerMitten::Task
     return destination
   end
 
+  ##
+  # Attaches to the +gem+ and +rdoc_result+ queues
   def get_queues
     @gem_queue         = get_queue 'gem'
     @rdoc_result_queue = get_queue 'rdoc_result'
   end
+
+  ##
+  # Retrieves the gemspec from +gem_file+
 
   def get_gemspec gem_file
     format = Gem::Format.from_file_by_path gem_file
 
     format.spec
   end
+
+  ##
+  # Runs rdoc on +gem_name+
 
   def rdoc gem_name
     status = 'unknown'
@@ -115,6 +133,10 @@ class PowerMitten::RDocer < PowerMitten::Task
     false
   end
 
+  ##
+  # Generates an rdoc command for +gemspec+ that will generate RDoc from the
+  # content in +dir+
+
   def rdoc_command gemspec, dir
     output_dir = File.join dir, 'output'
     rdoc = File.join(RbConfig::CONFIG["bindir"],
@@ -145,7 +167,7 @@ class PowerMitten::RDocer < PowerMitten::Task
     return rdoc, *rdoc_options
   end
 
-  def run
+  def run # :nodoc:
     super do
       swift = connect_swift
 
@@ -161,6 +183,10 @@ class PowerMitten::RDocer < PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Runs the rdoc +command+ in +dir+.  Yields the results of the command as an
+  # IO.
 
   def run_rdoc dir, command
     results_r, results_w = IO.pipe
@@ -192,6 +218,9 @@ class PowerMitten::RDocer < PowerMitten::Task
 
     return status
   end
+
+  ##
+  # Unpacks +gem+ into +dir+
 
   def unpack gem, dir
     Gem::Installer.new(gem, unpack: true).unpack dir

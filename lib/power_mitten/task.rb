@@ -1,10 +1,13 @@
-require 'att/swift'
-require 'fog/openstack'
 require 'optparse'
 require 'psych'
 require 'resolv/open_stack'
 require 'ringy_dingy'
 require 'syslog'
+
+##
+# A task allows an application builder to create a service that communicates
+# with other tasks.  The task provides API to register itself and connect to
+# other services.
 
 class PowerMitten::Task
 
@@ -103,9 +106,42 @@ class PowerMitten::Task
   describe_label :hostname, '%s',      ['Hostname', '%s']
   describe_label :pid,      'pid %5d', ['PID',      '%5d', 5]
 
+  ##
+  # The class name minus any namespacing is used for the short name
+
   def self.short_name
     name.split('::').last
   end
+
+  ##
+  # Creates a new Task.  This is typically invoked via super.  +options+ uses
+  # the following entries:
+  #
+  # :daemon::
+  #   If true, run as a daemon
+  # :localhost::
+  #   If true, do not attempt to self-configure via OpenStack.  The type
+  #   option must be set manually when running in localhost mode.
+  # :once::
+  #   If true, abort upon the first exception
+  # :type::
+  #   When run in localhost mode, sets the type of task to create.
+  #
+  # :openstack_api_key::
+  #   The API key or password used to log in
+  # :openstack_auth_url::
+  #   The OpenStack authentication URL
+  # :openstack_tenant::
+  #   The tenant to log in to
+  # :openstack_username::
+  #   The username to log in as
+  #
+  # :swift_uri::
+  #   The URI to swift
+  # :swift_username::
+  #   The username to log in as
+  # :swift_key::
+  #   The password used to log in
 
   def initialize options = {}
     @options  = options
@@ -152,8 +188,13 @@ class PowerMitten::Task
     notice "starting #{self.class}"
   end
 
+  ##
+  # Connects to swift using ATT::Swift
+
   def connect_swift
     return @swift if @swift
+
+    require 'att/swift'
 
     @swift = ATT::Swift.new(*@swift_credentials)
 
@@ -161,6 +202,9 @@ class PowerMitten::Task
 
     @swift
   end
+
+  ##
+  # Discovers the control hosts on the local network
 
   def control_hosts
     return %w[127.0.0.1] if @localhost
@@ -187,6 +231,9 @@ class PowerMitten::Task
 
     @control_hosts = addresses
   end
+
+  ##
+  # Sends syslog a debug +message+
 
   def debug message
     @syslog.debug '%s', message
@@ -221,13 +268,22 @@ class PowerMitten::Task
     description
   end
 
+  ##
+  # Sends syslog an error +message+
+
   def error message
     @syslog.err '%s', message
   end
 
+  ##
+  # Sends syslog a fatal +message+
+
   def fatal message
     @syslog.alert '%s', message
   end
+
+  ##
+  # Finds the control service and assigns it to @control
 
   def find_control
     hosts = control_hosts
@@ -247,11 +303,18 @@ class PowerMitten::Task
     retry
   end
 
+  ##
+  # Creates a fog instance using the openstack credentials
+
   def fog
     @fog ||= fog_compute @auth_url, @tenant, @username, @api_key
   end
 
-  def fork_child service, workers, options
+  ##
+  # Forks a process to run the class +service+.  The +options+ are sent to the
+  # service's \#initialize.  Returns the pid of the forked process.
+
+  def fork_child service, options
     pid = fork do
       Process.setsid
 
@@ -279,6 +342,10 @@ class PowerMitten::Task
     pid
   end
 
+  ##
+  # Gets the control service and registers with it, replacing the previous
+  # control service.
+
   def get_control
     @control_hosts = nil
 
@@ -291,6 +358,9 @@ class PowerMitten::Task
     @control
   end
 
+  ##
+  # Finds or creates a drip service.
+
   def get_drip
     drip = @control.add_drip
 
@@ -298,6 +368,9 @@ class PowerMitten::Task
 
     drip
   end
+
+  ##
+  # Finds or creates a Mutex service with +name+.
 
   def get_mutex name
     mutex_name = "Mutex-#{name}"
@@ -309,6 +382,9 @@ class PowerMitten::Task
     mutex
   end
 
+  ##
+  # Finds or creates a Queue service with +name+.
+
   def get_queue name
     queue_name = "Queue-#{name}"
 
@@ -318,6 +394,9 @@ class PowerMitten::Task
 
     queue
   end
+
+  ##
+  # Finds or creates a PowerMitten::Statistic service with +name+
 
   def get_statistic name
     statistic_name = "Statistic-#{name}"
@@ -344,6 +423,9 @@ class PowerMitten::Task
     Socket.gethostname.split('.', 2).first
   end
 
+  ##
+  # Sends syslog an info +message+
+
   def info message
     @syslog.info '%s', message
   end
@@ -355,6 +437,9 @@ class PowerMitten::Task
   def local_name
     @type || super
   end
+
+  ##
+  # Sends syslog a notice +message+
 
   def notice message
     @syslog.notice '%s', message
@@ -378,6 +463,21 @@ class PowerMitten::Task
       PowerMitten::Mach.resident_set_size / 1024
     end
   end
+
+  ##
+  # Starts running this task.  A typical task will super to this
+  # implementation:
+  #
+  #   def run
+  #     super do
+  #       get_resources
+  #
+  #       do_work
+  #     end
+  #   end
+  #
+  # #run takes care of attaching to the control node and restarting the task
+  # if a DRb exception occurred.
 
   def run
     get_control
@@ -403,11 +503,20 @@ class PowerMitten::Task
     raise
   end
 
+  ##
+  # Registers +object+ as +name+.
+  #
+  # Registration allows other services to discover and use the API presented
+  # by the object.
+
   def register object, name
     service = RingyDingy.new object, name, nil, control_hosts
     service.check_every = 60
     service.run :first_register
   end
+
+  ##
+  # Returns a list of all registered services.
 
   def services
     services = RingyDingy::RingServer.list_services
@@ -415,9 +524,23 @@ class PowerMitten::Task
     services.values.flatten 1
   end
 
+  ##
+  # The class name not including any namespacing
+
   def short_name
     self.class.short_name
   end
+
+  ##
+  # Starts the +service+ (which is a class) in a new process.  +workers+
+  # processes will be created.  +options+ is sent to the \#initialize method
+  # of the +service+.
+  #
+  # Worker children will be automatically restarted unless they exit
+  # successfully or are killed with a TERM signal.
+  #
+  # Worker children are added to a list of threads and can be shut down via
+  # stop_services.
 
   def start_service service, workers, options = @options
     ok_signals = Signal.list.values_at 'TERM', 'INT'
@@ -425,7 +548,7 @@ class PowerMitten::Task
     workers.times.map do
       thread = Thread.new do
         while @running do
-          pid = fork_child service, workers, options
+          pid = fork_child service, options
 
           Thread.current[:pid] = pid
 
@@ -441,6 +564,13 @@ class PowerMitten::Task
       @threads << thread
     end
   end
+
+  ##
+  # Stops services started by start_service.  Each child is sent a TERM
+  # signal.
+  #
+  # If your task starts children with it should call stop_services via at
+  # least INT and TERM signal handlers.
 
   def stop_services
     @running = false
@@ -459,6 +589,9 @@ class PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Sends syslog a warning +message+
 
   def warn message
     super message

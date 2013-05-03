@@ -12,8 +12,11 @@ module PowerMitten::Mach
   extend Fiddle::Importer
   dlload '/usr/lib/libSystem.dylib'
 
-  MACH_BASIC_TASK_INFO = 5
-  MACH_BASIC_TASK_INFO_COUNT = 10
+  # These constants came from OS X 10.8.  Other versions may have different
+  # values.
+
+  MACH_BASIC_TASK_INFO = 5 # :nodoc:
+  MACH_BASIC_TASK_INFO_COUNT = 10 # :nodoc:
 
   @current_task = import_symbol('mach_task_self_').ptr.to_i
 

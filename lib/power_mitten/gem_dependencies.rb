@@ -1,14 +1,14 @@
 require 'tempfile'
 
+##
+# Extracts dependencies from gems in a swift container
+
 class PowerMitten::GemDependencies < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
-  attr_reader :gem_queue
-  attr_reader :gem_dependencies_queue
-
-  def initialize options
+  def initialize options # :nodoc:
     super options
 
     @gem_queue              = nil
@@ -16,6 +16,13 @@ class PowerMitten::GemDependencies < PowerMitten::Task
 
     @gems_container = 'gems'
   end
+
+  ##
+  # Reads the gem names from the swift container and adds them to the gem
+  # queue for processing.
+  #--
+  # TODO this code is shared amongst a couple tasks and should be moved to a
+  # separate service
 
   def add_gems
     add_gems_mutex = get_mutex 'add_gems'
@@ -28,6 +35,10 @@ class PowerMitten::GemDependencies < PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Extracts the dependencies from the spec in +gem+ and adds it to the
+  # gem_dependencies queue
 
   def extract_dependencies gem
     Tempfile.open gem do |io|
@@ -51,12 +62,15 @@ class PowerMitten::GemDependencies < PowerMitten::Task
     ]
   end
 
+  ##
+  # Attaches to the gem and gem_dependencies queues
+
   def get_queues
     @gem_queue              = get_queue 'gem'
     @gem_dependencies_queue = get_queue 'gem_dependencies'
   end
 
-  def run
+  def run # :nodoc:
     super do
       connect_swift
 

@@ -1,15 +1,15 @@
 require 'digest/md5'
 require 'digest/sha2'
 
+##
+# Generates MD5 and SHA512 checksums for gem files stored in swift.
+
 class PowerMitten::GemChecksummer < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
-  attr_reader :gem_queue
-  attr_reader :gem_checksum_queue
-
-  def initialize options
+  def initialize options # :nodoc:
     super options
 
     @gem_queue    = nil
@@ -18,6 +18,13 @@ class PowerMitten::GemChecksummer < PowerMitten::Task
 
     @gems_container = 'gems'
   end
+
+  ##
+  # Reads the gem names from the swift container and adds them to the gem
+  # queue for processing.
+  #--
+  # TODO this code is shared amongst a couple tasks and should be moved to a
+  # separate service
 
   def add_gems
     add_gems_mutex = get_mutex 'add_gems'
@@ -30,6 +37,10 @@ class PowerMitten::GemChecksummer < PowerMitten::Task
       end
     end
   end
+
+  ##
+  # Creates an MD5 and SHA512 checksum of +gem+ and stores it in the
+  # appropriate queue.
 
   def checksum gem
     md5    = Digest::MD5.new
@@ -51,13 +62,16 @@ class PowerMitten::GemChecksummer < PowerMitten::Task
     @sha512_queue << [gem, sha512.hexdigest]
   end
 
+  ##
+  # Attaches to gem, md5 and sha512 queues.
+
   def get_queues
     @gem_queue    = get_queue 'gem'
     @md5_queue    = get_queue 'md5'
     @sha512_queue = get_queue 'sha512'
   end
 
-  def run
+  def run # :nodoc:
     super do
       swift = connect_swift
 

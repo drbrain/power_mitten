@@ -1,3 +1,6 @@
+##
+# Creates a drip service
+
 class PowerMitten::Drip < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
@@ -7,6 +10,10 @@ class PowerMitten::Drip < PowerMitten::Task
   # An accessor for the drip instance
 
   attr_reader :drip
+
+  ##
+  # Creates the drip instance.  If a :name is given in +options+ it will be
+  # appended to "power_mitten" when creating the drip.
 
   def initialize options
     super
@@ -20,7 +27,7 @@ class PowerMitten::Drip < PowerMitten::Task
     @drip = Drip.new File.expand_path path
   end
 
-  def run
+  def run # :nodoc:
     service = nil
 
     super do

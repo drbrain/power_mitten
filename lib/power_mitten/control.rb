@@ -1,5 +1,14 @@
 require 'thread'
 
+##
+# The coordination service.
+#
+# Control handles spawning dependent services such as mutexes, queues and
+# statistics.
+#--
+# TODO Control should do less directly.  Instead it should process requests
+# handled through the TupleSpace
+
 class PowerMitten::Control < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
@@ -10,20 +19,7 @@ class PowerMitten::Control < PowerMitten::Task
 
   describe_label :children, '%2d children', ['Children', '%2d']
 
-  attr_reader :services
-  attr_reader :threads
-
-  def self.run argv = ARGV
-    options = parse_args argv
-
-    options.merge! load_configuration options[:configuration]
-
-    control = new options
-
-    control.run
-  end
-
-  def initialize options = {}
+  def initialize options # :nodoc:
     super
 
     @running        = true
@@ -153,7 +149,7 @@ class PowerMitten::Control < PowerMitten::Task
     notice "registered remote service #{klass.name} #{name} from #{service.__drburi}"
   end
 
-  def run
+  def run # :nodoc;
     @ring_lookup = RingyDingy::Lookup.new control_hosts
 
     control_service = register self, 'Mitten-control'

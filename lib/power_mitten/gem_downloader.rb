@@ -1,5 +1,8 @@
 require 'net/http/persistent'
 
+##
+# Downloads gems from rubygems.org into a swift container
+
 class PowerMitten::GemDownloader < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
@@ -15,20 +18,7 @@ class PowerMitten::GemDownloader < PowerMitten::Task
   describe_label :downloaded, "%d\u2913", ['Downloaded', '%5d']
   describe_label :failed,     "%d\u20E0", ['Failed',     '%5d']
 
-  ##
-  # Count of gem names checked
-
-  attr_reader :checked
-
-  ##
-  # Count of gems downloaded
-
-  attr_reader :downloaded
-
-  ##
-  # Count of gems with failed download
-
-  def initialize options
+  def initialize options # :nodoc:
     super options
 
     @swift          = nil
@@ -45,6 +35,11 @@ class PowerMitten::GemDownloader < PowerMitten::Task
     @downloaded = 0
     @failed     = 0
   end
+
+  ##
+  # Retrieves gem names from rubygems.org and adds them to the gem_name queue.
+  #--
+  # TODO move this to a separate service, it is very expensive memory-wise
 
   def add_gem_names
     add_gem_names_mutex = get_mutex 'add_gem_names'
@@ -65,6 +60,10 @@ class PowerMitten::GemDownloader < PowerMitten::Task
       description[:failed]     = @failed
     end
   end
+
+  ##
+  # Downloads the gem with +name+ and stores it in swift, then adds the name
+  # to gem_name queue
 
   def download name
     @checked += 1
@@ -109,9 +108,15 @@ class PowerMitten::GemDownloader < PowerMitten::Task
     end
   end
 
+  ##
+  # Returns true if +gem_name+ exists in the gems container
+
   def gem_exists? gem_name
     @swift.object_info @gems_container, gem_name
   end
+
+  ##
+  # Retrieves the gem names from rubygems.org
 
   def get_gem_names
     fetcher = Gem::SpecFetcher.fetcher
@@ -131,12 +136,15 @@ class PowerMitten::GemDownloader < PowerMitten::Task
     end
   end
 
+  ##
+  # Attaches to the gem_name and gem queues
+
   def get_queues
     @gem_name_queue = get_queue 'gem_name'
     @gem_queue      = get_queue 'gem'
   end
 
-  def run
+  def run # :nodoc:
     super do
       @checked    = 0
       @downloaded = 0

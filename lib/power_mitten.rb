@@ -1,5 +1,10 @@
-module PowerMitten # :nodoc:
+module PowerMitten
+
+  ##
+  # The version of PowerMitten you are using
+
   VERSION = '1.0'
+
 end
 
 require 'power_mitten/configuration'

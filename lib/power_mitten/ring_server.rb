@@ -1,5 +1,9 @@
 require 'ringy_dingy/ring_server'
 
+##
+# A RingServer task.  The RingServer is used for registration and some
+# communication.
+
 class PowerMitten::RingServer < PowerMitten::Task
 
   config = PowerMitten::Configuration.new self
@@ -15,11 +19,7 @@ class PowerMitten::RingServer < PowerMitten::Task
   describe_label :registrations, "%d\u2913", ['Registered', '%5d']
   describe_label :expirations,   "%d\u2620", ['Expired',    '%5d']
 
-  attr_reader :expirations
-  attr_reader :registrations
-  attr_reader :service_registry
-
-  def initialize options
+  def initialize options # :nodoc:
     super
 
     @ring_server      = nil
@@ -39,7 +39,7 @@ class PowerMitten::RingServer < PowerMitten::Task
     end
   end
 
-  def run
+  def run # :nodoc:
     notice "listening on #{DRb.uri}"
 
     Thread.start do

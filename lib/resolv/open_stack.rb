@@ -1,9 +1,21 @@
 require 'resolv'
 require 'resolv-replace'
 
+##
+# A Resolv-compatible name resolver that uses OpenStack to retrieve DNS names.
+# This works around not-yet-implemented features in some of the AT&T OpenStack
+# datacenters
+
 class Resolv::OpenStack < Resolv::Hosts
 
+  ##
+  # The last times names were refreshed from OpenStack
+
   attr_reader :last_refresh
+
+  ##
+  # Creates a new resolver that uses the fog OpenStack +compute+ instance and
+  # refreshes every +refresh_every+ seconds.
 
   def initialize compute, refresh_every = 10
     super compute.current_tenant['name']
@@ -15,7 +27,7 @@ class Resolv::OpenStack < Resolv::Hosts
     @last_refresh = Time.at 0
   end
 
-  def lazy_initialize
+  def lazy_initialize # :nodoc:
     @mutex.synchronize do
       return if Time.now < @last_refresh + @refresh_every
 
@@ -39,6 +51,9 @@ class Resolv::OpenStack < Resolv::Hosts
 
     self
   end
+
+  ##
+  # Yields each address matching +name+
 
   def each_address name
     super name.downcase

@@ -1,18 +1,27 @@
+##
+# Contains utilities for retrieving data about the environment using fog.
+
 module PowerMitten::FogUtilities
 
-  def self.extended mod
+  def self.extended mod # :nodoc:
     super
 
     mod.instance_variable_set :@local_ip, nil
   end
 
-  def self.included mod
+  def self.included mod # :nodoc:
     super
 
     mod.instance_variable_set :@local_ip, nil
   end
+
+  ##
+  # Creates a fog compute instance for +auth_url+, +tenant+, +username+ and
+  # +api_key+.
 
   def fog_compute auth_url, tenant, username, api_key
+    require 'fog/openstack'
+
     Fog::Compute.new \
       provider: :openstack,
       openstack_api_key:  api_key,
@@ -32,14 +41,14 @@ module PowerMitten::FogUtilities
   end
 
   ##
-  # Returns the name of this task according to OpenStack
+  # Returns the name of this task's VM
 
   def local_name
     local_vm.name
   end
 
   ##
-  # Returns the VM for this task
+  # Returns the VM this task is running on
 
   def local_vm
     local_vm = fog.servers.find do |vm|
@@ -58,7 +67,7 @@ module PowerMitten::FogUtilities
   end
 
   ##
-  # Returns the number of VCPUs for this task
+  # Returns the number of VCPUs for the VM this task is running on
 
   def local_vcpus
     flavor_id = local_vm.flavor['id']
