@@ -17,8 +17,8 @@ class PowerMitten::Task
 
   @fog = nil
 
-  @label_orders = {}
-  @labels = Hash.new { |h, klass| h[klass] = {} }
+  @label_orders = Hash.new { |h, klass| h[klass] = [] }
+  @labels       = Hash.new { |h, klass| h[klass] = {} }
 
   class << self
     attr_reader :label_orders # :nodoc:
@@ -61,15 +61,16 @@ class PowerMitten::Task
   #   describe_label :pid,      'pid %5d', ['PID',      '%5d', 5]
   #
   # The +field+ is returned by #description and its order of display is set
-  # by ::label_order=.  The +column+ description includes the column name, the
-  # sprintf format string for the column and the field width.  If the column
-  # size is omitted the column will be automatically sized based on the
-  # largest column (or column title).
+  # based on when it was defined.  The +column+ description includes the
+  # column name, the sprintf format string for the column and the field width.
+  # If the column size is omitted the column will be automatically sized based
+  # on the largest column (or column title).
 
   def self.describe_label field, aggregate, column
     column << 0 if column.size == 2
 
     PowerMitten::Task.labels[self][field] = [aggregate, column]
+    PowerMitten::Task.label_orders[self] << field
   end
 
   ##
@@ -82,29 +83,19 @@ class PowerMitten::Task
   end
 
   ##
-  # The order labels are displayed on the console.  Define with label_order=
+  # The order labels are displayed on the console.  Label order is defined by
+  # the order of describe_label calls.
 
   def self.label_order
-    PowerMitten::Task.label_orders[self] ||
-      PowerMitten::Task.label_orders[PowerMitten::Task]
+    order = PowerMitten::Task.label_orders[PowerMitten::Task]
+    order += PowerMitten::Task.label_orders[self] unless
+      PowerMitten::Task == self
+    order
   end
 
-  ##
-  # Sets the order labels are displayed on the console.
-  #--
-  # TODO remove and use describe_label to automatically append to label_order.
-  # This will allow the standard items to always appear on the left and
-  # simplify creating tasks.
-
-  def self.label_order= order
-    PowerMitten::Task.label_orders[self] = order
-  end
-
-  self.label_order = [:pid, :hostname, :RSS]
-
-  describe_label :RSS,      '%7d RSS', ['RSS KB',   '%8d', 8]
-  describe_label :hostname, '%s',      ['Hostname', '%s']
   describe_label :pid,      'pid %5d', ['PID',      '%5d', 5]
+  describe_label :hostname, '%s',      ['Hostname', '%s']
+  describe_label :RSS,      '%7d RSS', ['RSS KB',   '%8d', 8]
 
   ##
   # The class name minus any namespacing is used for the short name

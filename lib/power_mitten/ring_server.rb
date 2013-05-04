@@ -9,12 +9,6 @@ class PowerMitten::RingServer < PowerMitten::Task
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
-  self.label_order = PowerMitten::Task.label_order + [
-    :service_count,
-    :registrations,
-    :expirations,
-  ]
-
   describe_label :service_count, "%d\u2713", ['Count',      '%5d']
   describe_label :registrations, "%d\u2913", ['Registered', '%5d']
   describe_label :expirations,   "%d\u2620", ['Expired',    '%5d']

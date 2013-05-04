@@ -8,12 +8,6 @@ class PowerMitten::GemDownloader < PowerMitten::Task
   config = PowerMitten::Configuration.new self
   config.cpu_multiplier = 8
 
-  self.label_order = [
-    :checked,
-    :downloaded,
-    :failed
-  ] + PowerMitten::Task.label_order
-
   describe_label :checked,    "%d\u2713", ['Checked',    '%5d']
   describe_label :downloaded, "%d\u2913", ['Downloaded', '%5d']
   describe_label :failed,     "%d\u20E0", ['Failed',     '%5d']

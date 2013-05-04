@@ -5,7 +5,14 @@ class TestPowerMittenTask < PowerMitten::TestCase
   def setup
     super
 
-    @task  = PowerMitten::Task.new @options
+    @task  = PowerMitten::TestCase::TestTask.new @options
+  end
+
+  def teardown
+    super
+
+    PowerMitten::Task.label_orders[@TT] = [:test]
+    PowerMitten::Task.labels[@TT].delete_if { |field,| field != :test }
   end
 
   def test_class_aggregate_description
@@ -13,10 +20,8 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_equal '%s',      PowerMitten::Task.aggregate_description(:hostname)
     assert_equal 'pid %5d', PowerMitten::Task.aggregate_description(:pid)
 
-    assert_equal '%7d RSS',
-                 PowerMitten::TestCase::TestTask.aggregate_description(:RSS)
-    assert_equal 'test %d',
-                 PowerMitten::TestCase::TestTask.aggregate_description(:test)
+    assert_equal '%7d RSS', @TT.aggregate_description(:RSS)
+    assert_equal 'test %d', @TT.aggregate_description(:test)
   end
 
   def test_class_column_descriptions
@@ -29,48 +34,44 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_equal expected, PowerMitten::Task.column_descriptions
 
     expected = [
-      [:test,     'Test',     '%4d', 4],
       [:pid,      'PID',      '%5d', 5],
       [:hostname, 'Hostname', '%s',  0],
       [:RSS,      'RSS KB',   '%8d', 8],
+      [:test,     'Test',     '%4d', 4],
     ]
 
-    assert_equal expected, PowerMitten::TestCase::TestTask.column_descriptions
+    assert_equal expected, @TT.column_descriptions
   end
 
   def test_class_describe_label
-    PowerMitten::Task.describe_label :test2, 'test %d', ['Test', '%d', 4]
+    @TT.describe_label :test2, 'test %d', ['Test', '%d', 4]
 
     expected = ['test %d', ['Test', '%d', 4]]
 
-    assert_equal expected, PowerMitten::Task.labels[PowerMitten::Task][:test2]
-  ensure
-    PowerMitten::Task.labels[PowerMitten::Task].delete(:test2)
+    assert_equal expected, PowerMitten::Task.labels[@TT][:test2]
   end
 
   def test_class_describe_label_missing_width
-    PowerMitten::Task.describe_label :test2, 'test %d', ['Test', '%d']
+    @TT.describe_label :test2, 'test %d', ['Test', '%d']
 
     expected = ['test %d', ['Test', '%d', 0]]
 
-    assert_equal expected, PowerMitten::Task.labels[PowerMitten::Task][:test2]
-  ensure
-    PowerMitten::Task.labels[PowerMitten::Task].delete(:test2)
+    assert_equal expected, PowerMitten::Task.labels[@TT][:test2]
   end
 
   def test_class_label_descriptions
-    assert_equal [:RSS, :hostname, :pid],
+    assert_equal [:pid, :hostname, :RSS],
                  PowerMitten::Task.label_descriptions.keys
 
-    assert_equal [:RSS, :hostname, :pid, :test],
-                 PowerMitten::TestCase::TestTask.label_descriptions.keys
+    assert_equal [:pid, :hostname, :RSS, :test],
+                 @TT.label_descriptions.keys
   end
 
   def test_class_label_order
     assert_equal [:pid, :hostname, :RSS], PowerMitten::Task.label_order
     assert_equal [:pid, :hostname, :RSS], PowerMitten::Console.label_order
 
-    assert_equal [:test, :pid, :hostname, :RSS],
+    assert_equal [:pid, :hostname, :RSS, :test],
                  PowerMitten::TestCase::TestTask.label_order
   end
 
@@ -84,10 +85,10 @@ class TestPowerMittenTask < PowerMitten::TestCase
 
     assert_equal fields.sort, description.keys.sort
 
-    assert_equal PowerMitten::Task, description[:klass]
-    assert_equal $$,                description[:pid]
-    assert_equal @task.hostname,    description[:hostname]
-    assert_kind_of Integer,         description[:RSS] if rss
+    assert_equal PowerMitten::TestCase::TestTask, description[:klass]
+    assert_equal $$,                              description[:pid]
+    assert_equal @task.hostname,                  description[:hostname]
+    assert_kind_of Integer,                       description[:RSS] if rss
   end
 
 end

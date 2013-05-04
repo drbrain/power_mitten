@@ -9,10 +9,6 @@ class PowerMitten::Statistics < PowerMitten::Task
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
-  self.label_order = PowerMitten::Task.label_order + [
-    :name, :items, :mean, :standard_deviation
-  ]
-
   describe_label :name,               '%-s',   ['Name',   '%-s']
   describe_label :items,              '%6d',   ['Items',  '%6d', 6]
   describe_label :mean,               '%6g',   ['Mean',   '%6g', 6]

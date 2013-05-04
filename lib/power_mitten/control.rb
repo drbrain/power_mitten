@@ -15,8 +15,6 @@ class PowerMitten::Control < PowerMitten::Task
   config.add_service PowerMitten::RingServer
   config.maximum_workers = 1
 
-  self.label_order = PowerMitten::Task.label_order + [:children]
-
   describe_label :children, '%2d children', ['Children', '%2d']
 
   def initialize options # :nodoc:
