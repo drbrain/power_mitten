@@ -15,6 +15,10 @@ class PowerMitten::Configuration
 
   @task_types = {}
 
+  class << self
+    attr_reader :task_types # :nodoc:
+  end
+
   ##
   # Number of workers to start per CPU
 
@@ -55,8 +59,7 @@ class PowerMitten::Configuration
 
   def self.services_for vm_name
     configuration = @task_types.each_value.find do |config|
-      # TODO check for '-' to avoid overlapping name problems
-      /\A#{Regexp.escape config.name}/ =~ vm_name
+      /\A#{Regexp.escape config.name}(-|$)/ =~ vm_name
     end
 
     return [] unless configuration
