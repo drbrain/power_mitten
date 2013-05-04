@@ -19,9 +19,9 @@ class TestPowerMittenConsoleRowFormatter < PowerMitten::TestCase
     formatted = @rf.format @descriptions
 
     expected = <<-EXPECTED.chomp
-Test   PID       Hostname   RSS KB
-   0  1234          short    35100
-   1 12345 very-long-name    24813
+  PID       Hostname   RSS KB Test
+ 1234          short    35100    0
+12345 very-long-name    24813    1
     EXPECTED
 
     assert_equal expected, formatted.join("\n")
@@ -31,9 +31,9 @@ Test   PID       Hostname   RSS KB
     rows = @rf.format_rows @descriptions
 
     expected = [
-      ['Test',   'PID',       'Hostname',   'RSS KB'],
-      ['   0', ' 1234',          'short', '   35100'],
-      ['   1', '12345', 'very-long-name', '   24813'],
+      [  'PID',       'Hostname',   'RSS KB', 'Test',],
+      [' 1234',          'short', '   35100', '   0',],
+      ['12345', 'very-long-name', '   24813', '   1',],
     ]
 
     assert_equal expected, rows
