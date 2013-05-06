@@ -15,13 +15,13 @@ class TestPowerMittenConfiguration < PowerMitten::TestCase
   end
 
   def test_class_new
-    config = @PMC.new @TT
+    @PMC.new @TT
 
     assert_equal [@TT], @PMC.services_for(@TT.short_name)
   end
 
   def test_class_services_for
-    config = @PMC.new @TT
+    @PMC.new @TT
 
     assert_equal [@TT], @PMC.services_for('TestTask')
     assert_equal [@TT], @PMC.services_for('TestTask-0')
