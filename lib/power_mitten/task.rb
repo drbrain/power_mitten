@@ -340,7 +340,7 @@ class PowerMitten::Task
   def get_control
     @control_hosts = nil
 
-    hosts = find_control
+    find_control
 
     notice "found control at #{@control.__drburi}"
 
