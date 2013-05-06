@@ -31,6 +31,7 @@ lib/resolv/open_stack.rb
 test/test_power_mitten_configuration.rb
 test/test_power_mitten_console.rb
 test/test_power_mitten_console_row_formatter.rb
+test/test_power_mitten_control.rb
 test/test_power_mitten_mitten.rb
 test/test_power_mitten_statistics.rb
 test/test_power_mitten_task.rb

@@ -17,12 +17,15 @@ class PowerMitten::Control < PowerMitten::Task
 
   describe_label :children, '%2d children', ['Children', '%2d']
 
+  attr_accessor :ring_lookup # :nodoc:
+
   def initialize options # :nodoc:
     super
 
     @running        = true
+    # Stores the RingyDingy service, not the object, to protect it from GC
     @services       = Hash.new do |h, class_name|
-      h[class_name] = {} # class_name => { name: instance }
+      h[class_name] = {} # class_name => { name: service }
     end
     @services_mutex = Mutex.new
     @threads        = []
@@ -88,9 +91,9 @@ class PowerMitten::Control < PowerMitten::Task
     instance = nil
 
     @services_mutex.synchronize do
-      instance = @services[class_name][name]
+      service = @services[class_name][name]
 
-      return instance if instance
+      return service.object if service
 
       instance = klass.new
 
@@ -136,19 +139,10 @@ class PowerMitten::Control < PowerMitten::Task
     end
   end
 
-  ##
-  # Registers +service+ with +name+ to the control task.
-
-  def register_service klass, service, name
-    @services_mutex.synchronize do
-      @services[klass.name][name] = service
-    end
-
-    notice "registered remote service #{klass.name} #{name} from #{service.__drburi}"
-  end
-
-  def run # :nodoc;
-    @ring_lookup = RingyDingy::Lookup.new control_hosts
+  def run # :nodoc:
+    @control_hosts = %w[localhost]
+    @ring_lookup   = RingyDingy::Lookup.new control_hosts
+    @control       = self
 
     control_service = register self, 'Mitten-control'
 

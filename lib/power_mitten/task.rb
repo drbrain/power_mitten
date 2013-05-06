@@ -501,7 +501,7 @@ class PowerMitten::Task
   # by the object.
 
   def register object, name
-    service = RingyDingy.new object, name, nil, control_hosts
+    service = RingyDingy.new object, name, nil, @ring_lookup
     service.check_every = 60
     service.run :first_register
   end
