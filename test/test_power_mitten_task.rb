@@ -75,6 +75,10 @@ class TestPowerMittenTask < PowerMitten::TestCase
                  PowerMitten::TestCase::TestTask.label_order
   end
 
+  def test_class_short_name
+    assert_equal 'TestTask', @TT.short_name
+  end
+
   def test_description
     description = @task.description
 
