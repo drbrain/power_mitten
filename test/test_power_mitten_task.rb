@@ -5,7 +5,7 @@ class TestPowerMittenTask < PowerMitten::TestCase
   def setup
     super
 
-    @task  = PowerMitten::TestCase::TestTask.new @options
+    @task = @TT.new @options
   end
 
   def teardown
@@ -77,6 +77,48 @@ class TestPowerMittenTask < PowerMitten::TestCase
 
   def test_class_short_name
     assert_equal 'TestTask', @TT.short_name
+  end
+
+  def test_control_hosts_initialized
+    hosts = @task.control_hosts
+    assert_same hosts, @task.control_hosts
+  end
+
+  def test_control_hosts_fog
+    fog = Object.new
+
+    def fog.servers
+      vm = Object.new
+      def vm.name() 'Control' end
+      def vm.addresses() { '' => { 'addr' => '10.example' } } end
+      [vm]
+    end
+
+    @task.instance_variable_set :@localhost, false
+    @task.instance_variable_set :@fog, fog
+    def @task.fog() @fog end
+
+    assert_equal %w[10.example], @task.control_hosts
+  end
+
+  def test_control_hosts_fog_no_control
+    fog = Object.new
+
+    def fog.servers() [] end
+
+    @task.instance_variable_set :@localhost, false
+    @task.instance_variable_set :@fog, fog
+    def @task.fog() @fog end
+
+    e = assert_raises RuntimeError do
+      @task.control_hosts
+    end
+
+    assert_equal 'no control hosts found', e.message
+  end
+
+  def test_control_hosts_localhost
+    assert_equal %w[127.0.0.1], @task.control_hosts
   end
 
   def test_description

@@ -150,13 +150,14 @@ class PowerMitten::Task
     @once      = options[:once]
     @type      = options[:type]
 
-    @fog         = nil
-    @control     = nil
-    @level       = nil
-    @ring_lookup = nil
-    @service     = nil
-    @swift       = nil
-    @syslog      =
+    @fog           = nil
+    @control       = nil
+    @control_hosts = nil
+    @level         = nil
+    @ring_lookup   = nil
+    @service       = nil
+    @swift         = nil
+    @syslog        =
       if Syslog.opened? then
         Syslog.reopen short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       else
@@ -196,11 +197,13 @@ class PowerMitten::Task
 
   ##
   # Discovers the control hosts on the local network
+  #
+  # This method is a workaround for lack of broadcast UDP or multicast support
+  # in the AT&T OpenStack data centers.
 
   def control_hosts
-    return %w[127.0.0.1] if @localhost
-
     return @control_hosts if @control_hosts
+    return @control_hosts = %w[127.0.0.1] if @localhost
 
     control_hosts = fog.servers.select do |vm|
       vm.name =~ /\AControl/
