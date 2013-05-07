@@ -191,5 +191,9 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert ts.read tuple
   end
 
+  def test_short_name
+    assert_equal 'TestTask', @task.short_name
+  end
+
 end
 
