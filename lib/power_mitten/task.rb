@@ -26,7 +26,6 @@ class PowerMitten::Task
   end
 
   attr_reader :swift
-  attr_accessor :level # :nodoc:
 
   def self.fog
     @fog
@@ -153,7 +152,6 @@ class PowerMitten::Task
     @fog           = nil
     @control       = nil
     @control_hosts = nil
-    @level         = nil
     @ring_lookup   = nil
     @service       = nil
     @swift         = nil
