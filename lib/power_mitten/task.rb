@@ -27,6 +27,11 @@ class PowerMitten::Task
 
   attr_reader :swift
 
+  ##
+  # Threads wrapping subprocesses managed by this task.
+
+  attr_reader :threads # :nodoc:
+
   def self.fog
     @fog
   end
@@ -153,6 +158,7 @@ class PowerMitten::Task
     @control       = nil
     @control_hosts = nil
     @ring_lookup   = nil
+    @running       = true
     @service       = nil
     @swift         = nil
     @syslog        =
@@ -161,6 +167,7 @@ class PowerMitten::Task
       else
         Syslog.open   short_name, Syslog::LOG_PID, Syslog::LOG_DAEMON
       end
+    @threads       = []
 
     resolvers = [
       Resolv::Hosts.new,
@@ -535,7 +542,7 @@ class PowerMitten::Task
   # stop_services.
 
   def start_service service, workers, options = @options
-    ok_signals = Signal.list.values_at 'TERM', 'INT'
+    ok_signals = Signal.list.values_at 'INT', 'TERM'
 
     workers.times.map do
       thread = Thread.new do

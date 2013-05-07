@@ -195,5 +195,103 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_equal 'TestTask', @task.short_name
   end
 
+  def test_start_service
+    assert_equal 0, @task.threads.length
+
+    @task.start_service @TT, 1
+
+    assert_equal 1,    @task.threads.length
+    refute_equal $PID, @task.threads.first[:pid]
+  ensure
+    @task.stop_services
+  end
+
+  def test_start_service_hup
+    @task.start_service @TT, 1
+
+    thread = @task.threads.first
+
+    Thread.pass until thread[:pid]
+
+    pid = thread[:pid]
+
+    Process.kill 'HUP', pid
+
+    Thread.pass while thread[:pid] == pid
+
+    refute_equal pid, thread[:pid]
+  ensure
+    @task.stop_services
+  end
+
+  def test_start_service_int
+    capture_io do
+      @task.start_service @TT, 1
+
+      thread = @task.threads.first
+
+      Thread.pass until thread[:pid]
+
+      pid = thread[:pid]
+
+      Process.kill 'INT', pid
+
+      begin
+        Process.wait pid
+      rescue Errno::ECHILD
+      end
+
+      assert_equal pid, thread[:pid]
+    end
+  ensure
+    @task.stop_services
+  end
+
+  def test_start_service_kill
+    capture_io do
+      @task.start_service @TT, 1
+
+      thread = @task.threads.first
+
+      Thread.pass until thread[:pid]
+
+      pid = thread[:pid]
+
+      Process.kill 'KILL', pid
+
+      begin
+        Process.wait pid
+      rescue Errno::ECHILD
+      end
+
+      assert_equal pid, thread[:pid]
+    end
+  ensure
+    @task.stop_services
+  end
+
+  def test_start_service_term
+    capture_io do
+      @task.start_service @TT, 1
+
+      thread = @task.threads.first
+
+      Thread.pass until thread[:pid]
+
+      pid = thread[:pid]
+
+      Process.kill 'TERM', pid
+
+      begin
+        Process.wait pid
+      rescue Errno::ECHILD
+      end
+
+      assert_equal pid, thread[:pid]
+    end
+  ensure
+    @task.stop_services
+  end
+
 end
 

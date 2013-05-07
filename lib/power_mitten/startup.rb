@@ -15,8 +15,6 @@ class PowerMitten::Startup < PowerMitten::Task
     super
 
     @local_ip = nil
-    @threads  = nil
-    @running  = true
 
     @options  = options
     @workers  = @options[:workers]
@@ -36,8 +34,6 @@ class PowerMitten::Startup < PowerMitten::Task
     notice "this is a #{name} task"
 
     services = PowerMitten::Configuration.services_for name
-
-    @threads = []
 
     start_services services
 

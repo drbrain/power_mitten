@@ -22,13 +22,11 @@ class PowerMitten::Control < PowerMitten::Task
   def initialize options # :nodoc:
     super
 
-    @running        = true
     # Stores the RingyDingy service, not the object, to protect it from GC
     @services       = Hash.new do |h, class_name|
       h[class_name] = {} # class_name => { name: service }
     end
     @services_mutex = Mutex.new
-    @threads        = []
   end
 
   ##
