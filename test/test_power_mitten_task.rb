@@ -260,12 +260,14 @@ class TestPowerMittenTask < PowerMitten::TestCase
 
       Process.kill 'KILL', pid
 
-      begin
-        Process.wait pid
-      rescue Errno::ECHILD
-      end
+      sleep 0.1
 
-      assert_equal pid, thread[:pid]
+      begin
+        Process.kill 'KILL', pid
+        flunk "#{pid} not signaled"
+      rescue Errno::ESRCH
+        assert true
+      end
     end
   ensure
     @task.stop_services
@@ -292,6 +294,27 @@ class TestPowerMittenTask < PowerMitten::TestCase
     end
   ensure
     @task.stop_services
+  end
+
+  def test_stop_services
+    @task.start_service @TT, 2
+
+    Thread.pass until @task.threads.all? { |thread| thread[:pid] }
+
+    pids = @task.threads.map { |thread| thread[:pid] }
+
+    @task.stop_services
+
+    sleep 0.1
+
+    pids.each do |pid|
+      begin
+        Process.kill 'KILL', pid
+        flunk "#{pid} not signaled"
+      rescue Errno::ESRCH
+        assert true
+      end
+    end
   end
 
 end
