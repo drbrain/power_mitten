@@ -173,5 +173,23 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_equal $PID, @task.pid
   end
 
+  def test_register
+    ts = Rinda::TupleSpace.new
+    @task.instance_variable_set :@ring_lookup, ts
+
+    obj = Object.new
+
+    @task.register obj, 'test_register_object'
+
+    tuple = [
+      :name,
+      'test_register_object',
+      DRb::DRbObject,
+      "#{Socket.gethostname}_#{$$}"
+    ]
+
+    assert ts.read tuple
+  end
+
 end
 
