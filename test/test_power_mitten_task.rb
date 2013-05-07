@@ -137,5 +137,23 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_kind_of Integer,                       description[:RSS] if rss
   end
 
+  def test_fork_child
+    pid = @task.fork_child @TT, @options
+
+    Process.kill 'TERM', pid
+
+    _, status = Process.wait2 pid
+
+    assert status.signaled?
+    assert_equal Signal.list['TERM'], status.termsig
+  rescue Exception => e
+    begin
+      Process.kill 'KILL', pid if pid
+    rescue Errno::ESRCH
+    end
+
+    raise e
+  end
+
 end
 
