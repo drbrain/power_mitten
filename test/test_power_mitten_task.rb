@@ -155,5 +155,23 @@ class TestPowerMittenTask < PowerMitten::TestCase
     raise e
   end
 
+  def test_hostname
+    assert_equal Socket.gethostname.split('.', 2).first, @task.hostname
+  end
+
+  def test_local_name
+    assert_equal 'TestTask', @task.local_name
+  end
+
+  def test_local_name_openstack
+    skip 'currently uses fog, switch to metadata API'
+
+    assert_equal :junk, @task.local_name
+  end
+
+  def test_pid
+    assert_equal $PID, @task.pid
+  end
+
 end
 

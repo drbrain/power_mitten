@@ -24,6 +24,7 @@ class PowerMitten::TestCase < MiniTest::Unit::TestCase
 
     @options = {
       localhost: true,
+      type:      'TestTask',
 
       openstack_auth_url: 'http://auth.example/v2.0/tokens',
       openstack_tenant:   'TENANT',
