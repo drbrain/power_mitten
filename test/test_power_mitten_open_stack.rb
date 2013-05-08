@@ -198,25 +198,13 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
       'Content-Type' => 'application/json',
       'Last-Modified' => last_modified,
     }
-    json = <<-JSON
-{
-  "flavor": {
-    "id": "1",
-    "name": "m1.tiny"
-  }
-}
-    JSON
+    json = '{ "thing": [ "stuff" ] } '
 
     @http.add_response '200', json, headers
 
     body = @os.request Net::HTTP::Get, uri
 
-    expected = {
-      'flavor' => {
-        'id' => '1',
-        'name' => 'm1.tiny',
-      }
-    }
+    expected = { 'thing' => %w[stuff] }
 
     assert_equal expected, body
 
@@ -225,7 +213,7 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_equal '1', req['X-Auth-Token']
     assert_equal 'application/vnd.openstack.compute+json;version=2;q=1,application/json;q=0.5,*/*;q=0', req['Accept']
 
-    assert_equal [last_modified, json], @os.cache[uri]
+    assert_equal [last_modified, 'application/json', json], @os.cache[uri]
 
     assert_empty @http.responses
   end
@@ -248,7 +236,7 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     expected = { 'thing' => %w[stuff] }
     assert_equal expected, body
 
-    assert_equal [last_modified, json], @os.cache[uri]
+    assert_equal [last_modified, 'application/json', json], @os.cache[uri]
   end
 
   def test_request_not_modified
@@ -257,13 +245,17 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     uri = URI 'http://compute.example/t/flavors/1'
     last_modified = Time.at(0).httpdate
 
-    @os.cache[uri] = [last_modified, '{ "thing": [ "stuff" ] }']
+    @os.cache[uri] = [
+      last_modified,
+      'application/json',
+      '{ "thing": [ "stuff" ] }',
+    ]
 
     @http.add_response '304', nil
 
     body = @os.request Net::HTTP::Get, uri
 
-    expected = '{ "thing": [ "stuff" ] }'
+    expected = { 'thing' => %w[stuff] }
 
     assert_equal expected, body
 

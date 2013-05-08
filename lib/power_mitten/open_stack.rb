@@ -389,7 +389,7 @@ class PowerMitten::OpenStack
     # https://support.sl.attcompute.com/requests/1693
     uri = @services['compute'] + uri.path
 
-    last_modified, cached_body = @cache[uri]
+    last_modified, cached_content_type, cached_body = @cache[uri]
 
     req = klass.new uri.request_uri
     req['If-Modified-Since'] = last_modified
@@ -402,16 +402,19 @@ class PowerMitten::OpenStack
     case res
     when Net::HTTPOK,
          Net::HTTPNonAuthoritativeInformation then
+      content_type  = res['Content-Type']
       last_modified = res['Last-Modified']
-      body = res.body
-      @cache[uri] = [last_modified, body] if last_modified
+      body          = res.body
+
+      @cache[uri] = [last_modified, content_type, body] if last_modified
     when Net::HTTPNotModified then
-      body = cached_body
+      content_type = cached_content_type
+      body         = cached_body
     else
       raise res.inspect
     end
 
-    case res['Content-Type']
+    case content_type
     when 'application/vnd.openstack.compute+json', 'application/json' then
       JSON.parse body
     else
