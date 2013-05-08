@@ -220,7 +220,14 @@ class PowerMitten::OpenStack
 
   Resource.new 'Image',
     'id',
-    'name'
+    'name',
+    'created',
+    'updated',
+    'metadata',
+    'minDisk',
+    'minRam',
+    'progress',
+    'status'
 
   ##
   # A server created by the API
@@ -228,16 +235,24 @@ class PowerMitten::OpenStack
   Resource.new 'Server',
                'id',
                'name',
-               'status',
-               'tenant_id',
+               'created',
+               'updated',
+               'addresses',
                'flavor_link',
                'image_link',
-               'addresses' do
+               'metadata',
+               'progress',
+               'status',
+               'tenant_id',
+               'user_id' do
     def initialize
       super
 
-      # this throws away information
-      @addresses = @addresses.map { |type, addrs|
+      @address_list = nil
+    end
+
+    def address_list
+      @address_list ||= @addresses.map { |type, addrs|
         addrs.map { |addr| addr['addr'] }
       }.flatten
     end
