@@ -73,15 +73,24 @@ class PowerMitten::OpenStack
 
     RESOURCES      = {} # :nodoc:
 
+    @fields        = nil
     @parent        = Module.nesting[1]
     @resource_name = nil
 
     class << self
 
       ##
+      # Fields for a Resource subclass.
+
+      attr_reader :fields
+
+      attr_writer :fields # :nodoc:
+
+      ##
       # Used by Link#follow to lookup up the resource class for the link
 
       attr_reader :resource_name # :nodoc:
+
     end
 
     ##
@@ -128,6 +137,8 @@ class PowerMitten::OpenStack
       klass.module_eval(&block) if block
 
       @parent.const_set class_name, klass
+
+      klass
     end
 
     ##
