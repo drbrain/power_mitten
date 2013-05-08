@@ -355,7 +355,7 @@ class PowerMitten::OpenStack
 
     tokens_uri = @keystone_uri + 'tokens'
 
-    req = Net::HTTP::Post.new tokens_uri
+    req = Net::HTTP::Post.new tokens_uri.path
     req['Content-Type'] = 'application/json'
     req.body = JSON.dump \
       'auth' => {
@@ -383,7 +383,7 @@ class PowerMitten::OpenStack
     # https://support.sl.attcompute.com/requests/1693
     uri = @services['compute'] + uri.path
 
-    req = klass.new uri
+    req = klass.new uri.request_uri
     req['X-Auth-Token'] = @token
     req['Accept'] =
       'application/vnd.openstack.compute+json;version=2;q=1,application/json;q=0.5,*/*;q=0'

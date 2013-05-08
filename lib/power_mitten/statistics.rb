@@ -1,3 +1,5 @@
+# coding: UTF-8
+
 ##
 # Computes statistics for a data set but does not store the data set.
 #
