@@ -10,65 +10,11 @@ require 'pp'
 
 class PowerMitten::OpenStack
 
-  attr_accessor :http # :nodoc:
-
-  ##
-  # Services available on OpenStack
-
-  attr_reader :services
-
-  ##
-  # Your login token
-
-  attr_reader :token
-
-  ##
-  # When your login token expires
-
-  attr_reader :token_expires
-
-  ##
-  # A server flavor
-
-  Flavor = Struct.new :id,
-                      :name,
-                      :vcpus,
-                      :ram,
-                      :disk do
-    def self.field # :nodoc:
-      'flavor'
-    end
-
-    def self.from_json json # :nodoc:
-      new \
-        json['id'],
-        json['name'],
-        json['vcpus'],
-        json['ram'],
-        json['disk']
-    end
-  end
-
-  ##
-  # An image used to create a server
-
-  Image = Struct.new :id,
-                     :name do
-    def self.field # :nodoc:
-      'image'
-    end
-
-    def self.from_json json # :nodoc:
-      new \
-        json['id'],
-        json['name']
-    end
-  end
-
   ##
   # A link to a resource returned by the API
 
   Link = Struct.new :klass, :id, :href do
+
     ##
     # Creates a new Link from the "bookmark" relation in the linkk of +json+
     # that will be loaded as an instance of +klass+.
@@ -88,56 +34,220 @@ class PowerMitten::OpenStack
     def follow openstack
       body = openstack.get href
 
-      klass.from_json body[klass.field]
+      klass.new body[klass.resource_name]
     end
+
   end
+
+  ##
+  # An HTTP resource
+  #
+  # To create a new resource:
+  #
+  #   Resource.new 'Image',
+  #                'id',
+  #                'name',
+  #                'minDisk',
+  #                'minRam',
+  #                'status',
+  #                'created',
+  #                'updated'
+  #
+  # As with Struct you may supply a block to customize a resource:
+  #
+  #   Resource.new 'Image', '...' do
+  #     def initialize
+  #       super # always super
+  #     end
+  #   end
+  #
+  # If a field in +fields+ ends with "_link" the result JSON for that field
+  # must be a hash containing an "id" and "links" (see ::new for an example).
+  # Upon instantiation the resource will automatically create a Link and
+  # follow it when the user requests that data.
+
+  class Resource
+
+    ##
+    # Maps a JSON field name to a resource class
+
+    RESOURCES      = {} # :nodoc:
+
+    @parent        = Module.nesting[1]
+    @resource_name = nil
+
+    class << self
+
+      ##
+      # Used by Link#follow to lookup up the resource class for the link
+
+      attr_reader :resource_name # :nodoc:
+    end
+
+    ##
+    # Creates a new resource class +class_name+ with the given +fields+.  If a
+    # block is given it will be used to customize the created class as
+    # Struct.new does.
+    #
+    # If a field in +fields+ ends with "_link" the result JSON for that field
+    # must be a hash containing an "id" and "links" such as:
+    #
+    #   "image": {
+    #     "id": "70a599e0",
+    #     "links": [
+    #       {
+    #         "href": "http://compute.example/tenant/images/70a599e0",
+    #         "rel": "bookmark"
+    #       }
+    #     ]
+    #   },
+    #
+    # Upon instantiation the resource will automatically create a Link and
+    # follow it when the user requests that data.
+    #
+    # The class will be placed in the PowerMitten::OpenStack namespace.
+
+    def self.new class_name, *fields, &block
+      resource_name = class_name.downcase
+
+      klass = Class.new self do
+        RESOURCES[resource_name] = self
+
+        @fields        = fields
+        @resource_name = resource_name
+
+        attr_accessor :openstack
+
+        create_accessors
+
+        def self.new json
+          resource_new json
+        end
+      end
+
+      klass.module_eval(&block) if block
+
+      @parent.const_set class_name, klass
+    end
+
+    ##
+    # Creates accessors for a resource.
+
+    def self.create_accessors # :nodoc:
+      @fields.each do |field|
+        case field
+        when /_link$/ then
+          accessor = $`
+
+          define_method accessor do
+            instance_variable_get("@#{field}").follow @openstack
+          end
+        end
+
+        attr_reader field
+      end
+    end
+
+    ##
+    # This is the implementation of \::new for a resource.
+    #
+    # A resource is created from a parsed JSON hash of the resource with the
+    # outer name removed.
+    #
+    # For:
+    #
+    #   { "image" => { "id" => "1", "name" => "FreeBSD 9.1-RELEASE", ... } }
+    #
+    # Send:
+    #
+    #   { "id" => "1", "name" => "FreeBSD 9.1-RELEASE", ... }
+    #
+    # Sending only the object makes creation more uniform whether the object
+    # comes from a single item or a collection.
+
+    def self.resource_new json
+      obj = allocate
+
+      @fields.each do |field|
+        case field
+        when /_link$/ then
+          json_field = $`
+
+          klass = RESOURCES[json_field]
+
+          link = Link.bookmark klass, json[json_field]
+
+          obj.instance_variable_set "@#{field}", link
+        else
+          obj.instance_variable_set "@#{field}", json[field]
+        end
+      end
+
+      obj.send :initialize
+
+      obj
+    end
+
+    def initialize # :nodoc:
+      @openstack = nil
+    end
+
+  end
+
+  ##
+  # A server flavor
+
+  Resource.new 'Flavor',
+    'id',
+    'name',
+    'vcpus',
+    'ram',
+    'disk'
+
+  ##
+  # An image used to create a server
+
+  Resource.new 'Image',
+    'id',
+    'name'
 
   ##
   # A server created by the API
 
-  Server = Struct.new :openstack,
-                      :id,
-                      :name,
-                      :status,
-                      :tenant_id,
-                      :flavor_link,
-                      :image_link,
-                      :addresses do
-    def self.field # :nodoc:
-      'server'
-    end
+  Resource.new 'Server',
+               'id',
+               'name',
+               'status',
+               'tenant_id',
+               'flavor_link',
+               'image_link',
+               'addresses' do
+    def initialize
+      super
 
-    def self.from_json json # :nodoc:
       # this throws away information
-      addresses = json['addresses'].map { |type, addrs|
+      @addresses = @addresses.map { |type, addrs|
         addrs.map { |addr| addr['addr'] }
       }.flatten
-
-      Server.new \
-        nil,
-        json['id'],
-        json['name'],
-        json['status'],
-        json['tenant_id'],
-        Link.bookmark(Flavor, json['flavor']),
-        Link.bookmark(Image, json['image']),
-        addresses
-    end
-
-    ##
-    # The Flavor for this server
-
-    def flavor
-      flavor_link.follow openstack
-    end
-
-    ##
-    # The Image for this server
-
-    def image
-      image_link.follow openstack
     end
   end
+
+  attr_accessor :http # :nodoc:
+
+  ##
+  # Services available on OpenStack
+
+  attr_reader :services
+
+  ##
+  # Your login token
+
+  attr_reader :token
+
+  ##
+  # When your login token expires
+
+  attr_reader :token_expires
 
   ##
   # Creates a new OpenStack.  The +keystone_uri+ is the authentication server.
@@ -281,7 +391,7 @@ class PowerMitten::OpenStack
     body = request Net::HTTP::Get, uri
 
     body['servers'].map do |server|
-      vm = Server.from_json server
+      vm = Server.new server
       vm.openstack = self
       vm
     end
