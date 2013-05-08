@@ -21,8 +21,11 @@ class PowerMitten::OpenStack
 
     def self.from_json klass, json
       id = json['id']
-      bookmark = json['links'].find { |link| link['rel'] == 'bookmark' }
-      href = URI bookmark['href']
+
+      relation   = json['links'].find { |link| link['rel'] == 'self' }
+      relation ||= json['links'].find { |link| link['rel'] == 'bookmark' }
+
+      href = URI relation['href']
 
       new klass, id, href
     end

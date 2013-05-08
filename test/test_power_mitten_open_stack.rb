@@ -78,14 +78,15 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
       'id' => '1',
       'links' => [
         { 'rel' => 'bookmark', 'href' => 'http://compute.example/whatever' },
+        { 'rel' => 'self',     'href' => 'http://compute.example/v2/whatever' },
       ]
     }
 
     link = PowerMitten::OpenStack::Link.from_json flavor, json
 
-    assert_equal flavor,                                 link.klass
-    assert_equal '1',                                    link.id
-    assert_equal URI('http://compute.example/whatever'), link.href
+    assert_equal flavor,                                    link.klass
+    assert_equal '1',                                       link.id
+    assert_equal URI('http://compute.example/v2/whatever'), link.href
   end
 
   def test_Link_follow
