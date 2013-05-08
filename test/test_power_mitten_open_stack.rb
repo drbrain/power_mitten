@@ -72,7 +72,7 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     @os.http = @http
   end
 
-  def test_Link_class_bookmark
+  def test_Link_class_from_json
     flavor = PowerMitten::OpenStack::Flavor
     json = {
       'id' => '1',
@@ -81,7 +81,7 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
       ]
     }
 
-    link = PowerMitten::OpenStack::Link.bookmark flavor, json
+    link = PowerMitten::OpenStack::Link.from_json flavor, json
 
     assert_equal flavor,                                 link.klass
     assert_equal '1',                                    link.id

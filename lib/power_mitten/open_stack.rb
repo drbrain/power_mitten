@@ -16,10 +16,10 @@ class PowerMitten::OpenStack
   Link = Struct.new :klass, :id, :href do
 
     ##
-    # Creates a new Link from the "bookmark" relation in the linkk of +json+
+    # Creates a new Link from the "bookmark" relation in the link of +json+
     # that will be loaded as an instance of +klass+.
 
-    def self.bookmark klass, json
+    def self.from_json klass, json
       id = json['id']
       bookmark = json['links'].find { |link| link['rel'] == 'bookmark' }
       href = URI bookmark['href']
@@ -186,7 +186,7 @@ class PowerMitten::OpenStack
 
           klass = RESOURCES[json_field]
 
-          link = Link.bookmark klass, json[json_field]
+          link = Link.from_json klass, json[json_field]
 
           obj.instance_variable_set "@#{field}", link
         else
@@ -294,7 +294,9 @@ class PowerMitten::OpenStack
     @password     = password
 
     @http = Net::HTTP::Persistent.new 'power_mitten-openstack'
+    @http.debug_output = $stderr
 
+    @cache         = {}
     @services      = {}
     @token         = nil
     @token_expires = Time.at 0
@@ -383,7 +385,10 @@ class PowerMitten::OpenStack
     # https://support.sl.attcompute.com/requests/1693
     uri = @services['compute'] + uri.path
 
+    last_modified, obj = @cache[uri]
+
     req = klass.new uri.request_uri
+    req['If-Modified-Since'] = last_modified
     req['X-Auth-Token'] = @token
     req['Accept'] =
       'application/vnd.openstack.compute+json;version=2;q=1,application/json;q=0.5,*/*;q=0'
@@ -400,6 +405,8 @@ class PowerMitten::OpenStack
 
     case res
     when Net::HTTPOK then
+      last_modified = res['Date']
+      @cache[uri] = [last_modified, body] if last_modified
       body
     else
       raise res.inspect
