@@ -230,6 +230,27 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_empty @http.responses
   end
 
+  def test_request_non_authoritative
+    add_login_response
+
+    uri = URI('http://compute.example/t/flavors/1')
+    last_modified = Time.now.httpdate
+    headers = {
+      'Content-Type' => 'application/json',
+      'Last-Modified' => last_modified,
+    }
+    json = '{ "thing": [ "stuff" ] }'
+
+    @http.add_response '203', json, headers
+
+    body = @os.request Net::HTTP::Get, uri
+
+    expected = { 'thing' => %w[stuff] }
+    assert_equal expected, body
+
+    assert_equal [last_modified, json], @os.cache[uri]
+  end
+
   def test_request_not_modified
     add_login_response
 

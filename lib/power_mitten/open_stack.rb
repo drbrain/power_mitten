@@ -400,7 +400,8 @@ class PowerMitten::OpenStack
     res = @http.request uri, req
 
     case res
-    when Net::HTTPOK then
+    when Net::HTTPOK,
+         Net::HTTPNonAuthoritativeInformation then
       last_modified = res['Last-Modified']
       body = res.body
       @cache[uri] = [last_modified, body] if last_modified
