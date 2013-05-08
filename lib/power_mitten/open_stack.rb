@@ -261,6 +261,7 @@ class PowerMitten::OpenStack
     end
   end
 
+  attr_accessor :cache # :nodoc:
   attr_accessor :http # :nodoc:
 
   ##
@@ -401,6 +402,7 @@ class PowerMitten::OpenStack
     case res
     when Net::HTTPOK then
       last_modified = res['Last-Modified']
+      body = res.body
       @cache[uri] = [last_modified, body] if last_modified
     when Net::HTTPNotModified then
       body = cached_body
@@ -410,9 +412,9 @@ class PowerMitten::OpenStack
 
     case res['Content-Type']
     when 'application/vnd.openstack.compute+json', 'application/json' then
-      JSON.parse res.body
+      JSON.parse body
     else
-      res.body
+      body
     end
   end
 
