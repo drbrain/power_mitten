@@ -298,9 +298,12 @@ class PowerMitten::OpenStack
     @password     = password
 
     @http = Net::HTTP::Persistent.new 'power_mitten-openstack'
+    @http.open_timeout = 2
+    @http.read_timeout = 1
 
     @cache         = {}
     @services      = {}
+    @metadata_api  = URI 'http://169.254.169.254/latest/meta-data/'
     @token         = nil
     @token_expires = Time.at 0
   end
@@ -374,6 +377,22 @@ class PowerMitten::OpenStack
     @absolute_limits = limits['absolute']
 
     limits
+  end
+
+  ##
+  # Returns the local IPv4 address using the AWS metadata API.
+
+  def local_ipv4
+    res = @http.request @metadata_api + 'local-ipv4'
+
+    case res
+    when Net::HTTPOK then
+      res.body
+    else
+      nil
+    end
+  rescue Net::HTTP::Persistent::Error, Net::OpenTimeout, Errno::EHOSTUNREACH
+    nil
   end
 
   ##

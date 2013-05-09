@@ -54,10 +54,14 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
       @responses << res
     end
 
-    def request uri, req
+    def request uri, req = nil
+      req ||= Net::HTTP::Get.new uri.request_uri
+
       @requests << req
       res = @responses.shift
+
       raise "out of responses for #{uri}" unless res
+
       res
     end
   end
@@ -272,6 +276,12 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
 
     assert_equal EXPIRES, @os.token_expires
     assert_empty @http.responses
+  end
+
+  def test_local_ipv4
+    @http.add_response '200', '192.0.2.1', 'Content-Type' => 'text/html'
+
+    assert_equal '192.0.2.1', @os.local_ipv4
   end
 
   def test_request
