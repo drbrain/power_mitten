@@ -33,5 +33,13 @@ class PowerMitten::TestCase < MiniTest::Unit::TestCase
     }
   end
 
+  def mu_pp obj # :nodoc:
+    s = ''
+    s = PP.pp obj, s
+    s.force_encoding Encoding.default_external if defined?
+    Encoding
+    s.chomp
+  end
+
 end
 
