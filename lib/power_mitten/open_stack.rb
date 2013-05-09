@@ -396,6 +396,17 @@ class PowerMitten::OpenStack
   end
 
   ##
+  # Returns a Server for this server instance
+
+  def local_server
+    return unless address = local_ipv4
+
+    servers.find do |server|
+      server.address_list.include? address
+    end
+  end
+
+  ##
   # Logs in to OpenStack using your authentication server and credentials.
   # This is called automatically so there is no need to call it yourself.
 
@@ -480,7 +491,7 @@ class PowerMitten::OpenStack
 
     uri = @services['compute'] + 'servers/detail'
 
-    body = request Net::HTTP::Get, uri
+    body = get uri
 
     body['servers'].map do |server|
       vm = Server.new server

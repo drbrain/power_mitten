@@ -284,6 +284,44 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_equal '192.0.2.1', @os.local_ipv4
   end
 
+  def test_local_server
+    servers = <<-JSON
+{
+  "servers": [
+    {
+      "id": "1",
+      "addresses": {
+        "private": [
+          {
+            "addr": "192.0.2.1",
+            "version": 4
+          }
+        ]
+      },
+      "flavor": {
+        "id": "2",
+        "links": [
+          { "rel": "self", "href": "http://compute.example/t/flavors/2" }
+        ]
+      },
+      "image": {
+        "id": "3",
+        "links": [
+          { "rel": "self", "href": "http://compute.example/t/images/3" }
+        ]
+      }
+    }
+  ]
+}
+    JSON
+
+    @http.add_response '200', '192.0.2.1', 'Content-Type' => 'text/html'
+    add_login_response
+    @http.add_response '200', servers, 'Content-Type' => 'application/json'
+
+    assert_equal %w[192.0.2.1], @os.local_server.address_list
+  end
+
   def test_request
     add_login_response
 
