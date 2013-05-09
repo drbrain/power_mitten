@@ -298,12 +298,18 @@ class PowerMitten::OpenStack
     @password     = password
 
     @http = Net::HTTP::Persistent.new 'power_mitten-openstack'
-    @http.debug_output = $stderr
 
     @cache         = {}
     @services      = {}
     @token         = nil
     @token_expires = Time.at 0
+  end
+
+  ##
+  # Returns the absolute limits
+
+  def absolute_limits
+    @absolute_limits || limits['absolute']
   end
 
   ##
@@ -353,6 +359,24 @@ class PowerMitten::OpenStack
   end
 
   ##
+  # Retrieves your request limits
+
+  def limits
+    login
+
+    uri = @services['compute'] + 'limits'
+
+    body = request Net::HTTP::Get, uri
+
+    limits = body['limits']
+
+    @rate_limits     = limits['rate']
+    @absolute_limits = limits['absolute']
+
+    limits
+  end
+
+  ##
   # Logs in to OpenStack using your authentication server and credentials.
   # This is called automatically so there is no need to call it yourself.
 
@@ -377,6 +401,13 @@ class PowerMitten::OpenStack
     body = JSON.load res.body
 
     extract_token body
+  end
+
+  ##
+  # Returns the rate limits
+
+  def rate_limits
+    @rate_limits || limits['rate']
   end
 
   ##

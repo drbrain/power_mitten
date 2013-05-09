@@ -161,6 +161,91 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_equal expected, body
   end
 
+  def test_limits
+    limits = <<-JSON
+{
+  "limits": {
+    "rate": [
+      {
+        "uri": "*",
+        "regex": ".*",
+        "limit": [
+          {
+            "value": 10,
+            "verb": "POST",
+            "remaining": 2,
+            "unit": "MINUTE",
+            "next-available": "2011-12-15T22:42:45Z"
+          }
+        ]
+      },
+      {
+        "uri": "*/servers",
+        "regex": "^/servers",
+        "limit": [
+          {
+            "verb": "POST",
+            "value": 25,
+            "remaining": 24,
+            "unit": "DAY",
+            "next-available": "2011-12-15T22:42:45Z"
+          }
+        ]
+      }
+    ],
+    "absolute": {
+      "maxTotalRAMSize": 51200,
+      "maxServerMeta": 5,
+      "maxImageMeta": 5,
+      "maxPersonality": 5,
+      "maxPersonalitySize": 10240
+    }
+  }
+}
+    JSON
+
+    add_login_response
+
+    @http.add_response '200', limits, 'Content-Type' => 'application/json'
+
+    @os.limits
+
+    absolute_limits = {
+      'maxImageMeta'       => 5,
+      'maxPersonality'     => 5,
+      'maxPersonalitySize' => 10240,
+      'maxServerMeta'      => 5,
+      'maxTotalRAMSize'    => 51200,
+    }
+
+    assert_equal absolute_limits, @os.absolute_limits
+
+    rate_limits = [
+      { 'uri' => '*',
+        'regex' => '.*',
+        'limit' => [
+          { 'value'          => 10,
+            'verb'           => 'POST',
+            'remaining'      => 2,
+            'unit'           => 'MINUTE',
+            'next-available' => '2011-12-15T22:42:45Z', },
+        ],
+      },
+      { 'uri' => '*/servers',
+        'regex' => '^/servers',
+        'limit' => [
+          { 'value'          => 25,
+            'verb'           => 'POST',
+            'remaining'      => 24,
+            'unit'           => 'DAY',
+            'next-available' => '2011-12-15T22:42:45Z', },
+        ],
+      },
+    ]
+
+    assert_equal rate_limits, @os.rate_limits
+  end
+
   def test_login
     add_login_response
 
