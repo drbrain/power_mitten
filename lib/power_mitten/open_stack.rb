@@ -353,6 +353,21 @@ class PowerMitten::OpenStack
   end
 
   ##
+  # Returns an Array of Flavor instances
+
+  def flavors
+    login
+
+    uri = @services['compute'] + 'flavors/detail'
+
+    body = get uri
+
+    body['flavors'].map do |flavor|
+      Flavor.new flavor
+    end
+  end
+
+  ##
   # Performs a GET request for +uri+
 
   def get uri # :nodoc:
@@ -484,7 +499,7 @@ class PowerMitten::OpenStack
   end
 
   ##
-  # Returns an Array of Server instances for your logged-in tenant.
+  # Returns an Array of Server instances
 
   def servers
     login

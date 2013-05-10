@@ -141,6 +141,36 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_equal expected, @os.services
   end
 
+  def test_flavors
+    add_login_response
+
+    @http.add_response '200', <<-JSON, 'Content-Type' => 'application/json'
+{
+  "flavors": [
+    {
+      "id": "1",
+      "disk": 0,
+      "name": "m1.tiny",
+      "ram": 512,
+      "vcpus": 1,
+      "links": [
+        { "rel": "self",     "href": "http://compute.example/v2/t/flavors/1" },
+        { "rel": "bookmark", "href": "http://compute.example/t/flavors/1" }
+      ]
+    }
+  ]
+}
+    JSON
+
+    flavors = @os.flavors
+
+    assert_kind_of Array, flavors
+
+    flavor = flavors.first
+
+    assert_kind_of PowerMitten::OpenStack::Flavor, flavor
+  end
+
   def test_get
     add_login_response
 
