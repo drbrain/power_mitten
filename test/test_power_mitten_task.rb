@@ -84,31 +84,31 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_same hosts, @task.control_hosts
   end
 
-  def test_control_hosts_fog
-    fog = Object.new
+  def test_control_hosts_open_stack
+    open_stack = Object.new
 
-    def fog.servers
-      vm = Object.new
-      def vm.name() 'Control' end
-      def vm.addresses() { '' => { 'addr' => '10.example' } } end
-      [vm]
+    def open_stack.servers
+      server = Object.new
+      def server.name() 'Control' end
+      def server.addresses() { '' => { 'addr' => '10.example' } } end
+      [server]
     end
 
     @task.instance_variable_set :@localhost, false
-    @task.instance_variable_set :@fog, fog
-    def @task.fog() @fog end
+    @task.instance_variable_set :@open_stack, open_stack
+    def @task.open_stack() @open_stack end
 
     assert_equal %w[10.example], @task.control_hosts
   end
 
-  def test_control_hosts_fog_no_control
-    fog = Object.new
+  def test_control_hosts_open_stack_no_control
+    open_stack = Object.new
 
-    def fog.servers() [] end
+    def open_stack.servers() [] end
 
     @task.instance_variable_set :@localhost, false
-    @task.instance_variable_set :@fog, fog
-    def @task.fog() @fog end
+    @task.instance_variable_set :@open_stack, open_stack
+    def @task.open_stack() @open_stack end
 
     e = assert_raises RuntimeError do
       @task.control_hosts

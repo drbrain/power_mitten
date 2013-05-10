@@ -15,8 +15,7 @@ class PowerMitten::KeystonePing < PowerMitten::Task
   # +options+:
   #
   # keystone_url::
-  #   The URL for keystone from your .novarc file.  There is no need to
-  #   manually add "/tokens" to the end as you must for fog.
+  #   The URL for keystone from your .novarc file.
   # keystone_username::
   #   Your username
   # keystone_password::

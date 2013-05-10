@@ -12,7 +12,6 @@ lib/power_mitten/console.rb
 lib/power_mitten/console/row_formatter.rb
 lib/power_mitten/control.rb
 lib/power_mitten/drip.rb
-lib/power_mitten/fog_utilities.rb
 lib/power_mitten/gem_checksummer.rb
 lib/power_mitten/gem_dependencies.rb
 lib/power_mitten/gem_downloader.rb
@@ -21,6 +20,7 @@ lib/power_mitten/keystone_ping.rb
 lib/power_mitten/mach.rb
 lib/power_mitten/mitten.rb
 lib/power_mitten/open_stack.rb
+lib/power_mitten/open_stack_utilities.rb
 lib/power_mitten/queue.rb
 lib/power_mitten/rdocer.rb
 lib/power_mitten/ring_server.rb

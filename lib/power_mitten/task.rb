@@ -11,11 +11,11 @@ require 'syslog'
 
 class PowerMitten::Task
 
-  extend  PowerMitten::FogUtilities
-  include PowerMitten::FogUtilities
+  extend  PowerMitten::OpenStackUtilities
+  include PowerMitten::OpenStackUtilities
   include DRb::DRbUndumped
 
-  @fog = nil
+  @open_stack = nil
 
   @label_orders = Hash.new { |h, klass| h[klass] = [] }
   @labels       = Hash.new { |h, klass| h[klass] = {} }
@@ -32,8 +32,8 @@ class PowerMitten::Task
 
   attr_reader :threads # :nodoc:
 
-  def self.fog
-    @fog
+  def self.open_stack
+    @open_stack
   end
 
   ##
@@ -154,7 +154,7 @@ class PowerMitten::Task
     @once      = options[:once]
     @type      = options[:type]
 
-    @fog           = nil
+    @open_stack    = nil
     @control       = nil
     @control_hosts = nil
     @ring_lookup   = nil
@@ -174,7 +174,7 @@ class PowerMitten::Task
       Resolv::DNS.new,
     ]
 
-    resolvers.push Resolv::OpenStack.new(fog) unless @localhost
+    resolvers.push Resolv::OpenStack.new(open_stack) unless @localhost
     resolvers.unshift Resolv::MDNS.new if Resolv.const_defined? :MDNS
 
     resolver = Resolv.new resolvers
@@ -210,7 +210,7 @@ class PowerMitten::Task
     return @control_hosts if @control_hosts
     return @control_hosts = %w[127.0.0.1] if @localhost
 
-    control_hosts = fog.servers.select do |vm|
+    control_hosts = open_stack.servers.select do |vm|
       vm.name =~ /\AControl/
     end.uniq
 
@@ -303,10 +303,10 @@ class PowerMitten::Task
   end
 
   ##
-  # Creates a fog instance using the openstack credentials
+  # Creates a PowerMitten::OpenStack instance using the OpenStack credentials
 
-  def fog
-    @fog ||= fog_compute @auth_url, @tenant, @username, @api_key
+  def open_stack
+    @open_stack ||= new_open_stack @auth_url, @tenant, @username, @api_key
   end
 
   ##

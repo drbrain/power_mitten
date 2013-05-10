@@ -8,7 +8,7 @@ module PowerMitten
 end
 
 require 'power_mitten/configuration'
-require 'power_mitten/fog_utilities'
+require 'power_mitten/open_stack_utilities'
 require 'power_mitten/task'
 require 'power_mitten/checksum_dump'
 require 'power_mitten/collect'

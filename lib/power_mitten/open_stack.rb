@@ -270,6 +270,11 @@ class PowerMitten::OpenStack
   attr_reader :services
 
   ##
+  # The tenant for this instance
+
+  attr_reader :tenant
+
+  ##
   # Your login token
 
   attr_reader :token

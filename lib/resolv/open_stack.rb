@@ -14,11 +14,11 @@ class Resolv::OpenStack < Resolv::Hosts
   attr_reader :last_refresh
 
   ##
-  # Creates a new resolver that uses the fog OpenStack +compute+ instance and
-  # refreshes every +refresh_every+ seconds.
+  # Creates a new resolver that uses the +open_stack+ instance and refreshes
+  # every +refresh_every+ seconds.
 
-  def initialize compute, refresh_every = 10
-    super compute.current_tenant['name']
+  def initialize open_stack, refresh_every = 10
+    super open_stack.tenant
     @compute       = compute
     @refresh_every = refresh_every
 
@@ -36,10 +36,9 @@ class Resolv::OpenStack < Resolv::Hosts
       @name2addr = Hash.new { |h, name| h[name] = [] }
       @addr2name = Hash.new { |h, addr| h[addr] = [] }
 
-      @compute.servers.each do |vm|
-        name = vm.name.downcase.tr '_', '-'
-        vm.addresses.values.flatten.each do |entry|
-          addr = entry['addr']
+      @compute.servers.each do |server|
+        name = server.name.downcase.tr '_', '-'
+        server.address_list.each do |addr|
           next unless addr =~ /\A10\./
 
           @addr2name[addr] << name
