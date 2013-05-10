@@ -3,8 +3,6 @@ require 'net/http/persistent'
 require 'time'
 require 'uri'
 
-require 'pp'
-
 ##
 # A basic OpenStack API wrapper
 
