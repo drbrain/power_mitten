@@ -31,7 +31,7 @@ class PowerMitten::KeystonePing < PowerMitten::Task
     super
 
     url = URI options['keystone_url']
-    url += './tokens'
+    url += '/v2.0/tokens'
 
     @keystone_login = keystone_login_request_body options
     @keystone_path  = url.path
@@ -68,6 +68,7 @@ class PowerMitten::KeystonePing < PowerMitten::Task
 
   def login
     request = Net::HTTP::Post.new @keystone_path
+    request['Content-Type'] = 'application/json'
     request.body = @keystone_login
 
     start_time     = Time.now
