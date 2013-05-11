@@ -17,21 +17,21 @@ module PowerMitten::OpenStackUtilities
   # Returns the name of this task's VM
 
   def local_name
-    local_vm.name
+    local_server.name
   end
 
   ##
   # Returns the VM this task is running on
 
-  def local_vm
-    open_stack.local_vm
+  def local_server
+    open_stack.local_server
   end
 
   ##
   # Returns the number of VCPUs for the VM this task is running on
 
   def local_vcpus
-    local_vm.flavor.vcpus
+    local_server.flavor.vcpus
   end
 
 end
