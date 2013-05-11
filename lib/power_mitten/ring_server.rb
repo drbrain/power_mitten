@@ -14,6 +14,8 @@ class PowerMitten::RingServer < PowerMitten::Task
   describe_label :expirations,   "%d\u2620", ['Expired',    '%5d']
 
   def initialize options # :nodoc:
+    options[:type] = 'RingServer'
+
     super
 
     @ring_server      = nil
