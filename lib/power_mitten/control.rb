@@ -61,16 +61,17 @@ class PowerMitten::Control < PowerMitten::Task
   # Queue was created, +false+ if it already exists.
 
   def add_queue name
+    full_name = "Queue-#{name}"
     @services_mutex.synchronize do
       begin
-        @ring_lookup.find name
+        @ring_lookup.find full_name
       rescue RuntimeError # HACK update RingyDingy to have useful exceptions
         options = @options.dup
         options[:name] = name
 
         start_service PowerMitten::Queue, 1, options
 
-        return @ring_lookup.wait_for name
+        return @ring_lookup.wait_for full_name
       end
     end
   end
@@ -110,23 +111,25 @@ class PowerMitten::Control < PowerMitten::Task
   # registered.
 
   def add_statistic name
+    full_name = "Statistics-#{name}"
+
     @services_mutex.synchronize do
       begin
         # lookup again in case it was just created
-        service = @ring_lookup.find name
+        service = @ring_lookup.find full_name
 
         return service if service
       rescue RuntimeError
         options = @options.dup
         options[:name] = name
 
-        notice "starting #{name}"
+        notice "starting #{full_name}"
 
         start_service PowerMitten::Statistics, 1, options
 
-        notice "started #{name}, waiting for registration"
+        notice "started #{full_name}, waiting for registration"
 
-        return @ring_lookup.wait_for name
+        return @ring_lookup.wait_for full_name
       end
     end
   end

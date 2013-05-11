@@ -153,6 +153,8 @@ class PowerMitten::Task
     @localhost = options[:localhost]
     @once      = options[:once]
     @type      = options[:type]
+    @name      = @type
+    @group     = 'Mitten'
 
     @open_stack    = nil
     @control       = nil
@@ -255,8 +257,9 @@ class PowerMitten::Task
     rss = nil
 
     description = {
-      klass:    self.class,
+      group:    @group,
       hostname: hostname,
+      klass:    self.class,
       pid:      $$,
     }
 
@@ -352,7 +355,7 @@ class PowerMitten::Task
 
     notice "found control at #{@control.__drburi}"
 
-    @service = register self, "Mitten-#{local_name}"
+    @service = register self, "#{@group}-#{@name}"
 
     @control
   end
@@ -387,7 +390,7 @@ class PowerMitten::Task
   def get_queue name
     queue_name = "Queue-#{name}"
 
-    queue = @control.add_queue queue_name
+    queue = @control.add_queue name
 
     notice "found #{queue_name} at #{queue.__drburi}"
 
@@ -398,13 +401,13 @@ class PowerMitten::Task
   # Finds or creates a PowerMitten::Statistic service with +name+
 
   def get_statistic name
-    statistic_name = "Statistic-#{name}"
+    statistic_name = "Statistics-#{name}"
 
     notice "looking up #{statistic_name}"
 
-    statistic = @ring_lookup.find name
+    statistic = @ring_lookup.find statistic_name
   rescue RuntimeError
-    statistic = @control.add_statistic statistic_name
+    statistic = @control.add_statistic name
   ensure
     if statistic then
       notice "found #{statistic_name} at #{statistic.__drburi}"

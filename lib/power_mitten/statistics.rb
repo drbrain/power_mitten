@@ -38,12 +38,12 @@ class PowerMitten::Statistics < PowerMitten::Task
   def initialize options
     super
 
+    @group = 'Statistics'
     @name  = options[:name]
-
-    @items           = 0
-    @mean            = 0.0
-    @mutex           = Mutex.new
-    @M_2             = 0.0
+    @items = 0
+    @mean  = 0.0
+    @mutex = Mutex.new
+    @M_2   = 0.0
   end
 
   ##
@@ -67,7 +67,7 @@ class PowerMitten::Statistics < PowerMitten::Task
 
   def description # :nodoc:
     super do |description|
-      description[:name]               = @name.sub 'Statistic-', ''
+      description[:name]               = @name
       description[:items]              = @items
       description[:mean]               = @mean
       description[:standard_deviation] = standard_deviation
@@ -75,12 +75,8 @@ class PowerMitten::Statistics < PowerMitten::Task
   end
 
   def run # :nodoc:
-    service = nil
-
     super do
-      service ||= register self, @name
-
-      service.thread.join
+      @service.thread.join
     end
   end
 
