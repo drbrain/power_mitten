@@ -1,4 +1,5 @@
 require 'power_mitten'
+require 'pp'
 require 'minitest/autorun'
 
 ##
