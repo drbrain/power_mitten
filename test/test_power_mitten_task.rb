@@ -201,7 +201,13 @@ class TestPowerMittenTask < PowerMitten::TestCase
     @task.start_service @TT, 2
 
     assert_equal 2,    @task.threads.length
+
+    thread = @task.threads[0]
+    Thread.pass until thread[:pid]
     refute_equal $PID, @task.threads[0][:pid]
+
+    thread = @task.threads[1]
+    Thread.pass until thread[:pid]
     refute_equal $PID, @task.threads[1][:pid]
   ensure
     @task.stop_services
