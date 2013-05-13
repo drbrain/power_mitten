@@ -137,23 +137,6 @@ class PowerMitten::Console < PowerMitten::Task
 
     services.each do |name, group, description|
       case group
-      when 'Queue' then
-        name = $'
-        last_size = @queue_stats[name]
-
-        queue = service
-
-        size = queue.size
-        delta = size - last_size
-        items_per_second = delta / @wait
-
-        str = "%s %d items %d waiting %+d (%0.1f/s)" % [
-          name, size, queue.num_waiting, delta, items_per_second
-        ]
-
-        show_line str, 2
-
-        @queue_stats[name] = size
       when 'Mutex' then
         name = $'
         locked = service.locked? ? 'locked' : 'unlocked'
@@ -199,12 +182,10 @@ class PowerMitten::Console < PowerMitten::Task
 
   def update_service group_name, services
     case group_name
-    when /^Mitten/,
-         'Statistics'  then
-      show_tasks group_name, services
-    when 'Mutex',
-         'Queue' then
+    when 'Mutex' then
       show_services group_name, services
+    else
+      show_tasks group_name, services
     end
   end
 
