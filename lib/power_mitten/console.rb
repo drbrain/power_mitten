@@ -19,21 +19,14 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
-  # Collates +services+ by name
+  # Collates +services+ by group.  If the group is "Mitten" (the default
+  # group) those services are grouped by name.  Services within the "Mitten"
+  # group do not have homogeneous descriptions.
 
-  def collate_services services
-    collated = Hash.new { |h, k| h[k] = [] }
-
-    services.each do |_, name, service, _|
-      case name
-      when /(Mutex|Queue)-/ then
-        collated[$1] << [name, service]
-      else
-        collated[name] << [name, service]
-      end
+  def collate_descriptions services
+    services.group_by do |name, group,|
+      group == 'Mitten' ? name : group
     end
-
-    collated
   end
 
   ##
@@ -67,34 +60,6 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
-  # Retrieves the descriptions for +items+ from each service
-
-  def get_descriptions items
-    items.map do |_, task|
-      begin
-        task.description
-      rescue DRb::DRbConnError
-      end
-    end.compact
-  end
-
-  ##
-  # Filters +services+ for those that are still alive
-
-  def live_services services
-    services.select do |_, _, service,|
-      begin
-        if DRb::DRbObject === service then
-          service.send :method_missing, :object_id
-        else
-          true
-        end
-      rescue DRb::DRbConnError
-      end
-    end
-  end
-
-  ##
   # Called this when the console reconnects to control to reset statistics and
   # formatters.
 
@@ -119,6 +84,20 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
+  # Returns a name, group and description for each item in +services+ that is
+  # alive.
+
+  def service_descriptions services
+    services.map do |_, name, service,|
+      begin
+        description = service.description
+        [name, description[:group], description]
+      rescue DRb::DRbConnError
+      end
+    end.compact
+  end
+
+  ##
   # Displays +line+ with an optional +indent+
 
   def show_line line, indent = nil
@@ -128,26 +107,20 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
-  # Shows the +tasks+ in +group_name+
+  # Shows the task +services+ in +group_name+
 
-  def show_tasks group_name, tasks
+  def show_tasks group_name, services
     /^Mitten-(?<short_name>.*)/ =~ group_name
 
-    groups = tasks.group_by { |name,| name }
+    descriptions = services.map { |_, _, description| description }
 
-    groups.each_value do |items|
-      descriptions = get_descriptions items
+    row_formatter = row_formatter_for descriptions.first
 
-      next if descriptions.empty?
+    lines = row_formatter.format descriptions
 
-      row_formatter = row_formatter_for descriptions.first
-
-      lines = row_formatter.format descriptions
-
-      lines.each_with_index do |line, index|
-        line << " - #{short_name}" if index.zero?
-        show_line line
-      end
+    lines.each_with_index do |line, index|
+      line << " - #{short_name}" if short_name and index.zero?
+      show_line line
     end
   end
 
@@ -162,9 +135,9 @@ class PowerMitten::Console < PowerMitten::Task
 
     show_line "#{group_name}:"
 
-    services.each do |name, service|
-      case name
-      when /^Queue-/ then
+    services.each do |name, group, description|
+      case group
+      when 'Queue' then
         name = $'
         last_size = @queue_stats[name]
 
@@ -181,7 +154,7 @@ class PowerMitten::Console < PowerMitten::Task
         show_line str, 2
 
         @queue_stats[name] = size
-      when /Mutex-/ then
+      when 'Mutex' then
         name = $'
         locked = service.locked? ? 'locked' : 'unlocked'
 
@@ -195,8 +168,8 @@ class PowerMitten::Console < PowerMitten::Task
   ##
   # Sorts services by name.  The control service is always at the top
 
-  def sort_services services
-    services.sort_by do |_, name,|
+  def sort_descriptions services
+    services.sort_by do |name,|
       case name
       when 'Mitten-control' then
         ''
@@ -210,11 +183,11 @@ class PowerMitten::Console < PowerMitten::Task
   # Discovers and updates service descriptions
 
   def update
-    alive = live_services services
+    descriptions = service_descriptions services
 
-    sorted = sort_services alive
+    sorted = sort_descriptions descriptions
 
-    collated = collate_services sorted
+    collated = collate_descriptions sorted
 
     collated.each do |group_name, services|
       update_service group_name, services
@@ -226,18 +199,15 @@ class PowerMitten::Console < PowerMitten::Task
 
   def update_service group_name, services
     case group_name
-    when /^Mitten-/ then
-      if services.size > 2 then
-        show_tasks_aggregate group_name, services
-      else
-        show_tasks group_name, services
-      end
-    when /^Statistic-/ then
+    when /^Mitten/,
+         'Statistics'  then
       show_tasks group_name, services
-    when 'Mutex', 'Queue' then
+    when 'Mutex',
+         'Queue' then
       show_services group_name, services
     end
   end
+
 
 end
 
