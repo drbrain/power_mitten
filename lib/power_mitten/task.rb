@@ -306,13 +306,6 @@ class PowerMitten::Task
   end
 
   ##
-  # Creates a PowerMitten::OpenStack instance using the OpenStack credentials
-
-  def open_stack
-    @open_stack ||= new_open_stack @auth_url, @tenant, @username, @api_key
-  end
-
-  ##
   # Forks a process to run the class +service+.  The +options+ are sent to the
   # service's \#initialize.  Returns the pid of the forked process.
 
@@ -445,6 +438,13 @@ class PowerMitten::Task
 
   def notice message
     @syslog.notice '%s', message
+  end
+
+  ##
+  # Creates a PowerMitten::OpenStack instance using the OpenStack credentials
+
+  def open_stack
+    @open_stack ||= new_open_stack @auth_url, @tenant, @username, @api_key
   end
 
   ##
