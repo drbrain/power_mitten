@@ -495,7 +495,10 @@ class PowerMitten::Task
     sleep 10
 
     retry
-  rescue ThreadError
+  rescue ThreadError => e
+    # HACK work around ruby 2.0.0p0 bug when starting a forked service
+    retry if e.message =~ /is not locked/
+
     return # queue empty
   rescue SignalException, SystemExit
     raise

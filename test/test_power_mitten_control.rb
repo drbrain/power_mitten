@@ -19,14 +19,6 @@ class TestPowerMittenControl < PowerMitten::TestCase
     end
   end
 
-  def test_add_service
-    service = @control.add_service Object, 'object'
-
-    assert_instance_of Object, service
-
-    assert_same service, @control.add_service(Object, 'object')
-  end
-
   def test_ping
     assert_in_delta Time.now, @control.ping, 1
   end

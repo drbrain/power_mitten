@@ -53,7 +53,20 @@ class PowerMitten::Control < PowerMitten::Task
   # Mutex was created, +false+ if it already exists.
 
   def add_mutex name
-    add_service Mutex, name
+    full_name = "Mutex-#{name}"
+
+    @services_mutex.synchronize do
+      begin
+        @ring_lookup.find full_name
+      rescue RuntimeError # HACK update RingyDingy to have useful exceptions
+        options = @options.dup
+        options[:name] = name
+
+        start_service PowerMitten::Mutex, 1, options
+
+        return @ring_lookup.wait_for full_name
+      end
+    end
   end
 
   ##
@@ -62,6 +75,7 @@ class PowerMitten::Control < PowerMitten::Task
 
   def add_queue name
     full_name = "Queue-#{name}"
+
     @services_mutex.synchronize do
       begin
         @ring_lookup.find full_name
@@ -74,36 +88,6 @@ class PowerMitten::Control < PowerMitten::Task
         return @ring_lookup.wait_for full_name
       end
     end
-  end
-
-  ##
-  # Returns the previously registered service of type +klass+ with the given
-  # +name+.
-  #
-  # If no service was registered, creates a new item by calling +new+ on the
-  # given +klass+ and returning the new instance.  When creating a new
-  # service the return will be delayed until the service is registered.
-
-  def add_service klass, name
-    class_name = klass.name
-
-    instance = nil
-
-    @services_mutex.synchronize do
-      service = @services[class_name][name]
-
-      return service.object if service
-
-      instance = klass.new
-
-      service = register instance, name
-
-      @services[class_name][name] = service
-    end
-
-    notice "added #{klass.name} #{name}"
-
-    instance
   end
 
   ##

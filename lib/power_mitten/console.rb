@@ -128,27 +128,6 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
-  # Shows +services+ in +group_name+
-
-  def show_services group_name, services
-    @window.setpos @window.cury, 0
-
-    show_line "#{group_name}:"
-
-    services.each do |name, group, description|
-      case group
-      when 'Mutex' then
-        name = $'
-        locked = service.locked? ? 'locked' : 'unlocked'
-
-        show_line "#{name} #{locked}", 2
-      else
-        show_line "#{name} [unknown]", 2
-      end
-    end
-  end
-
-  ##
   # Sorts services by name.  The control service is always at the top
 
   def sort_descriptions services
@@ -181,12 +160,7 @@ class PowerMitten::Console < PowerMitten::Task
   # Updates the consoles for +services+ in +group_name+
 
   def update_service group_name, services
-    case group_name
-    when 'Mutex' then
-      show_services group_name, services
-    else
-      show_tasks group_name, services
-    end
+    show_tasks group_name, services
   end
 
 

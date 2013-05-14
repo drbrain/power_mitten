@@ -20,6 +20,7 @@ lib/power_mitten/keystone_flood.rb
 lib/power_mitten/keystone_ping.rb
 lib/power_mitten/mach.rb
 lib/power_mitten/mitten.rb
+lib/power_mitten/mutex.rb
 lib/power_mitten/open_stack.rb
 lib/power_mitten/open_stack_utilities.rb
 lib/power_mitten/queue.rb
