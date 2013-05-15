@@ -15,10 +15,7 @@ class PowerMitten::Console < PowerMitten::Task
 
     super options
 
-    @row_formatters = nil
     @wait           = 2.0
-
-    reinitialize
   end
 
   ##
@@ -36,10 +33,8 @@ class PowerMitten::Console < PowerMitten::Task
   # Displays a view of the active services on the control task
 
   def console
-    reinitialize
-
     Curses.init_screen
-    @window         = Curses::Window.new 0, 0, 0, 0
+    @window = Curses::Window.new 0, 0, 0, 0
 
     trap 'WINCH' do
       rows, cols = IO.console.winsize
@@ -63,20 +58,10 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
-  # Called this when the console reconnects to control to reset statistics and
-  # formatters.
-
-  def reinitialize
-    @row_formatters = {}
-  end
-
-  ##
   # Retrieves a row formatter for the Task +description+ belongs to
 
   def row_formatter_for description
-    klass = description[:klass]
-
-    @row_formatters[klass] ||= PowerMitten::Console::RowFormatter.new klass
+    PowerMitten::Console::RowFormatter.new description[:klass]
   end
 
   def run # :nodoc:

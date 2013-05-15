@@ -2,6 +2,8 @@ require 'power_mitten'
 require 'pp'
 require 'minitest/autorun'
 
+DRb.start_service
+
 ##
 # A helper for writing power_mitten tests
 

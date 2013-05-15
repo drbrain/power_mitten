@@ -131,11 +131,11 @@ class TestPowerMittenTask < PowerMitten::TestCase
 
     assert_equal fields, description.keys.sort
 
-    assert_equal 'Mitten',                        description[:group]
-    assert_equal @task.hostname,                  description[:hostname]
-    assert_equal PowerMitten::TestCase::TestTask, description[:klass]
-    assert_equal $$,                              description[:pid]
-    assert_kind_of Integer,                       description[:RSS] if rss
+    assert_equal 'Mitten',                description[:group]
+    assert_equal @task.hostname,          description[:hostname]
+    assert_equal DRb::DRbObject.new(@TT), description[:klass]
+    assert_equal $$,                      description[:pid]
+    assert_kind_of Integer,               description[:RSS] if rss
   end
 
   def test_fork_child

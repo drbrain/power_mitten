@@ -69,6 +69,11 @@ class PowerMitten::Task
   # column name, the sprintf format string for the column and the field width.
   # If the column size is omitted the column will be automatically sized based
   # on the largest column (or column title).
+  #
+  # All items in the description should be basic ruby types that do not
+  # require remote calls to resolve.  This minimizes network traffic and
+  # allows the console to automatically adapt to alternate versions of the
+  # same class during code updates.
 
   def self.describe_label field, aggregate, column
     column << 0 if column.size == 2
@@ -259,7 +264,7 @@ class PowerMitten::Task
     description = {
       group:    @group,
       hostname: hostname,
-      klass:    self.class,
+      klass:    DRb::DRbObject.new(self.class),
       pid:      $$,
     }
 

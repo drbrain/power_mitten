@@ -56,8 +56,6 @@ class TestPowerMittenConsole < PowerMitten::TestCase
   end
 
   def test_row_formatter_for
-    @console.reinitialize
-
     description = {
       klass: PowerMitten::TestCase::TestTask,
     }
