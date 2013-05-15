@@ -100,10 +100,9 @@ class PowerMitten::Console < PowerMitten::Task
   end
 
   ##
-  # Displays +line+ with an optional +indent+
+  # Displays +line+
 
-  def show_line line, indent = nil
-    @window.setpos @window.cury, indent if indent
+  def show_line line
     @window.addstr line
     @window.setpos @window.cury + 1, 0
   end
