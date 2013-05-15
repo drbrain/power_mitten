@@ -6,6 +6,8 @@ class PowerMitten::Console < PowerMitten::Task
   config = PowerMitten::Configuration.new self
   config.maximum_workers = 1
 
+  attr_accessor :window # :nodoc:
+
   def initialize options # :nodoc:
     require 'curses'
     require 'io/console'
@@ -14,8 +16,9 @@ class PowerMitten::Console < PowerMitten::Task
     super options
 
     @row_formatters = nil
-    @queue_stats    = nil
     @wait           = 2.0
+
+    reinitialize
   end
 
   ##
@@ -64,7 +67,6 @@ class PowerMitten::Console < PowerMitten::Task
   # formatters.
 
   def reinitialize
-    @queue_stats    = Hash.new 0
     @row_formatters = {}
   end
 

@@ -3,6 +3,24 @@ require 'power_mitten/console/row_formatter'
 
 class TestPowerMittenConsole < PowerMitten::TestCase
 
+  class Window
+
+    attr_reader :lines
+
+    def initialize
+      @lines = []
+    end
+
+    def addstr line
+      @lines << line
+    end
+
+    def cury() 0 end
+
+    def setpos(y, x) end
+
+  end
+
   def setup
     super
 
@@ -74,6 +92,29 @@ class TestPowerMittenConsole < PowerMitten::TestCase
     ]
 
     assert_equal expected, descriptions
+  end
+
+  def test_show_tasks
+    @console.window = Window.new
+
+    services = [
+      ['s1', 'group',
+        { klass: @TT, name: 'service 1', group: 'group',
+          RSS: 1, pid: 10, test: 100 }],
+      ['s2', 'group',
+        { klass: @TT, name: 'service 2', group: 'group',
+          RSS: 2, pid: 11, test: 101 }],
+    ]
+
+    @console.show_tasks 'group', services
+
+    expected = [
+      '  PID Hostname   RSS KB Test',
+      '   10                 1  100',
+      '   11                 2  101',
+    ]
+
+    assert_equal expected, @console.window.lines
   end
 
   def test_sort_descriptions
