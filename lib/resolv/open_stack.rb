@@ -19,7 +19,7 @@ class Resolv::OpenStack < Resolv::Hosts
 
   def initialize open_stack, refresh_every = 10
     super open_stack.tenant
-    @compute       = compute
+    @open_stack    = open_stack
     @refresh_every = refresh_every
 
     @addr2name    = nil
@@ -36,7 +36,7 @@ class Resolv::OpenStack < Resolv::Hosts
       @name2addr = Hash.new { |h, name| h[name] = [] }
       @addr2name = Hash.new { |h, addr| h[addr] = [] }
 
-      @compute.servers.each do |server|
+      @open_stack.servers.each do |server|
         name = server.name.downcase.tr '_', '-'
         server.address_list.each do |addr|
           next unless addr =~ /\A10\./
