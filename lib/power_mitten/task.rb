@@ -301,7 +301,10 @@ class PowerMitten::Task
 
     hosts
   rescue => e
-    notice "unable to connect to control at #{hosts.join ', '}: #{e.message} (#{e.class})"
+    host_message = hosts ? " at #{hosts.join ', '}" : nil
+    notice "unable to connect to control#{host_message}: " +
+           "#{e.message} (#{e.class})"
+
     raise if @once
 
     @control_hosts = nil
