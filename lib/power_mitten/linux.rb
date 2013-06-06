@@ -11,7 +11,7 @@ module PowerMitten::Linux
   def self.resident_set_size
     _, rss_pages, = File.read('/proc/self/statm').split ' ', 3
 
-    rss_pages * PAGESIZE
+    rss_pages.to_i * PAGESIZE
   end
 
 end
