@@ -10,6 +10,7 @@ class PowerMitten::KeystoneFlood < PowerMitten::Task
   file_limit, = Process.getrlimit Process::RLIMIT_NOFILE
 
   config = PowerMitten::Configuration.new self
+  config.cpu_multiplier  = Float::INFINITY
   config.maximum_workers = file_limit / 2
 
   describe_label :requests,   '%8d', ['Requests',   '%8d', 8]
