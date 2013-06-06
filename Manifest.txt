@@ -18,6 +18,7 @@ lib/power_mitten/gem_downloader.rb
 lib/power_mitten/irb.rb
 lib/power_mitten/keystone_flood.rb
 lib/power_mitten/keystone_ping.rb
+lib/power_mitten/linux.rb
 lib/power_mitten/mach.rb
 lib/power_mitten/mitten.rb
 lib/power_mitten/mutex.rb

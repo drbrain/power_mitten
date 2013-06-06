@@ -468,6 +468,11 @@ class PowerMitten::Task
       require 'power_mitten/mach'
 
       PowerMitten::Mach.resident_set_size / 1024
+    when /linux/ then
+      require 'power_mitten/linux'
+      PowerMitten::Linux.resident_set_size / 1024
+    else
+      0
     end
   end
 
