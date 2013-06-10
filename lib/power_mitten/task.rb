@@ -207,37 +207,6 @@ class PowerMitten::Task
   end
 
   ##
-  # Discovers the control hosts on the local network
-  #
-  # This method is a workaround for lack of broadcast UDP or multicast support
-  # in the AT&T OpenStack data centers.
-
-  def control_hosts
-    return @control_hosts if @control_hosts
-    return @control_hosts = %w[127.0.0.1] if @localhost
-
-    control_hosts = open_stack.servers.select do |vm|
-      vm.name =~ /\AControl/
-    end.uniq
-
-    return [] unless control_hosts
-
-    addresses = control_hosts.map do |vm|
-      vm.addresses.values.flatten.map do |address|
-        next unless address['addr'] =~ /\A10\./
-
-        address['addr']
-      end
-    end.flatten.compact.uniq
-
-    raise "no control hosts found" if addresses.empty?
-
-    notice "found control hosts #{addresses.join ', '}"
-
-    @control_hosts = addresses
-  end
-
-  ##
   # Sends syslog a debug +message+
 
   def debug message
@@ -292,9 +261,7 @@ class PowerMitten::Task
   # Finds the control service and assigns it to @control
 
   def find_control
-    hosts = control_hosts
-
-    @ring_lookup = RingyDingy::Lookup.new hosts
+    @ring_lookup = RingyDingy::Lookup.new
 
     @control = @ring_lookup.find 'Mitten-control'
 

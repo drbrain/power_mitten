@@ -79,48 +79,6 @@ class TestPowerMittenTask < PowerMitten::TestCase
     assert_equal 'TestTask', @TT.short_name
   end
 
-  def test_control_hosts_initialized
-    hosts = @task.control_hosts
-    assert_same hosts, @task.control_hosts
-  end
-
-  def test_control_hosts_open_stack
-    open_stack = Object.new
-
-    def open_stack.servers
-      server = Object.new
-      def server.name() 'Control' end
-      def server.addresses() { '' => { 'addr' => '10.example' } } end
-      [server]
-    end
-
-    @task.instance_variable_set :@localhost, false
-    @task.instance_variable_set :@open_stack, open_stack
-    def @task.open_stack() @open_stack end
-
-    assert_equal %w[10.example], @task.control_hosts
-  end
-
-  def test_control_hosts_open_stack_no_control
-    open_stack = Object.new
-
-    def open_stack.servers() [] end
-
-    @task.instance_variable_set :@localhost, false
-    @task.instance_variable_set :@open_stack, open_stack
-    def @task.open_stack() @open_stack end
-
-    e = assert_raises RuntimeError do
-      @task.control_hosts
-    end
-
-    assert_equal 'no control hosts found', e.message
-  end
-
-  def test_control_hosts_localhost
-    assert_equal %w[127.0.0.1], @task.control_hosts
-  end
-
   def test_description
     description = @task.description
 
