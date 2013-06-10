@@ -1,6 +1,6 @@
 require 'optparse'
 require 'psych'
-require 'resolv/open_stack'
+require 'resolv'
 require 'ringy_dingy'
 require 'syslog'
 
@@ -181,7 +181,6 @@ class PowerMitten::Task
       Resolv::DNS.new,
     ]
 
-    resolvers.push Resolv::OpenStack.new(open_stack) unless @localhost
     resolvers.unshift Resolv::MDNS.new if Resolv.const_defined? :MDNS
 
     resolver = Resolv.new resolvers
