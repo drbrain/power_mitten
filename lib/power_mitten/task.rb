@@ -265,12 +265,8 @@ class PowerMitten::Task
     @ring_lookup = RingyDingy::Lookup.new
 
     @control = @ring_lookup.find 'Mitten-control'
-
-    hosts
   rescue => e
-    host_message = hosts ? " at #{hosts.join ', '}" : nil
-    notice "unable to connect to control#{host_message}: " +
-           "#{e.message} (#{e.class})"
+    notice "unable to connect to control: #{e.message} (#{e.class})"
 
     raise if @once
 
