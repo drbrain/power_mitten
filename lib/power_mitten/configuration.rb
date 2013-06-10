@@ -59,7 +59,7 @@ class PowerMitten::Configuration
 
   def self.services_for vm_name
     configuration = @task_types.each_value.find do |config|
-      /\A#{Regexp.escape config.name}(-|$)/ =~ vm_name
+      /\A#{Regexp.escape config.name}(-|$)/i =~ vm_name
     end
 
     return [] unless configuration

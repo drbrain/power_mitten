@@ -24,6 +24,7 @@ class TestPowerMittenConfiguration < PowerMitten::TestCase
     @PMC.new @TT
 
     assert_equal [@TT], @PMC.services_for('TestTask')
+    assert_equal [@TT], @PMC.services_for('testtask')
     assert_equal [@TT], @PMC.services_for('TestTask-0')
 
     assert_empty @PMC.services_for('TestTaskTwo')
