@@ -98,18 +98,18 @@ class TestPowerMittenConsole < PowerMitten::TestCase
     services = [
       ['s1', 'group',
         { klass: @TT, name: 'service 1', group: 'group',
-          RSS: 1, pid: 10, test: 100 }],
+          openstack_requests: 1, RSS: 1, pid: 10, test: 100 }],
       ['s2', 'group',
         { klass: @TT, name: 'service 2', group: 'group',
-          RSS: 2, pid: 11, test: 101 }],
+          openstack_requests: 1, RSS: 2, pid: 11, test: 101 }],
     ]
 
     @console.show_tasks 'group', services
 
     expected = [
-      '  PID Hostname   RSS KB Test',
-      '   10                 1  100',
-      '   11                 2  101',
+      '  PID Hostname OS Reqs   RSS KB Test',
+      '   10                1        1  100',
+      '   11                1        2  101',
     ]
 
     assert_equal expected, @console.window.lines
