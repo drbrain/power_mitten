@@ -535,6 +535,8 @@ class PowerMitten::Task
 
           break if status.success?
           break if ok_signals.include?(status.termsig)
+
+          sleep 1
         end
       end
 
