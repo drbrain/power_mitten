@@ -164,7 +164,6 @@ class PowerMitten::Task
 
     @open_stack    = nil
     @control       = nil
-    @control_hosts = nil
     @ring_lookup   = nil
     @running       = true
     @service       = nil
@@ -270,7 +269,6 @@ class PowerMitten::Task
 
     raise if @once
 
-    @control_hosts = nil
     sleep 2
 
     retry
@@ -313,8 +311,6 @@ class PowerMitten::Task
   # control service.
 
   def get_control
-    @control_hosts = nil
-
     find_control
 
     notice "found control at #{@control.__drburi}"

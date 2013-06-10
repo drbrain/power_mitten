@@ -125,8 +125,7 @@ class PowerMitten::Control < PowerMitten::Task
   end
 
   def run # :nodoc:
-    @control_hosts = %w[localhost]
-    @ring_lookup   = RingyDingy::Lookup.new control_hosts
+    @ring_lookup   = RingyDingy::Lookup.new %w[localhost]
     @control       = self
 
     control_service = register self, 'Mitten-control'
