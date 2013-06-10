@@ -263,6 +263,11 @@ class PowerMitten::OpenStack
   attr_accessor :http # :nodoc:
 
   ##
+  # Number of API requests made
+
+  attr_reader :request_count
+
+  ##
   # Services available on OpenStack
 
   attr_reader :services
@@ -307,6 +312,7 @@ class PowerMitten::OpenStack
     @cache         = {}
     @services      = {}
     @metadata_api  = URI 'http://169.254.169.254/latest/meta-data/'
+    @request_count = 0
     @token         = nil
     @token_expires = Time.at 0
   end
@@ -403,6 +409,8 @@ class PowerMitten::OpenStack
   def local_ipv4
     res = @http.request @metadata_api + 'local-ipv4'
 
+    @request_count += 1
+
     case res
     when Net::HTTPOK then
       res.body
@@ -446,6 +454,8 @@ class PowerMitten::OpenStack
 
     res = @http.request tokens_uri, req
 
+    @request_count += 1
+
     body = JSON.load res.body
 
     extract_token body
@@ -477,6 +487,8 @@ class PowerMitten::OpenStack
       'application/vnd.openstack.compute+json;version=2;q=1,application/json;q=0.5,*/*;q=0'
 
     res = @http.request uri, req
+
+    @request_count += 1
 
     case res
     when Net::HTTPOK,

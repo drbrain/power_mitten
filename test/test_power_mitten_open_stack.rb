@@ -193,6 +193,8 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     }
 
     assert_equal expected, body
+
+    assert_equal 2, @os.request_count
   end
 
   def test_limits
@@ -286,6 +288,8 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     token = @os.login
 
     assert_equal '1', token
+
+    assert_equal 1, @os.request_count
   end
 
   def test_login_twice
@@ -294,6 +298,8 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     token = @os.login
 
     assert_same token, @os.login
+
+    assert_equal 1, @os.request_count
   end
 
   def test_login_expired
@@ -306,12 +312,16 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
 
     assert_equal EXPIRES, @os.token_expires
     assert_empty @http.responses
+
+    assert_equal 2, @os.request_count
   end
 
   def test_local_ipv4
     @http.add_response '200', '192.0.2.1', 'Content-Type' => 'text/html'
 
     assert_equal '192.0.2.1', @os.local_ipv4
+
+    assert_equal 1, @os.request_count
   end
 
   def test_local_server
@@ -379,6 +389,8 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_equal [last_modified, 'application/json', json], @os.cache[uri]
 
     assert_empty @http.responses
+
+    assert_equal 2, @os.request_count
   end
 
   def test_request_non_authoritative
@@ -400,6 +412,8 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     assert_equal expected, body
 
     assert_equal [last_modified, 'application/json', json], @os.cache[uri]
+
+    assert_equal 2, @os.request_count
   end
 
   def test_request_not_modified
@@ -425,6 +439,8 @@ class TestPowerMittenOpenStack < PowerMitten::TestCase
     req = @http.requests.last
 
     assert_equal last_modified, req['If-Modified-Since']
+
+    assert_equal 2, @os.request_count
   end
 
   def test_servers

@@ -102,9 +102,10 @@ class PowerMitten::Task
     order
   end
 
-  describe_label :pid,      'pid %5d', ['PID',      '%5d', 5]
-  describe_label :hostname, '%s',      ['Hostname', '%s']
-  describe_label :RSS,      '%7d RSS', ['RSS KB',   '%8d', 8]
+  describe_label :pid,                'pid %5d', ['PID',      '%5d', 5]
+  describe_label :hostname,           '%s',      ['Hostname', '%s']
+  describe_label :openstack_requests, '%5d OSr', ['OS Reqs',  '%d']
+  describe_label :RSS,                '%7d RSS', ['RSS KB',   '%8d', 8]
 
   ##
   # The class name minus any namespacing is used for the short name
@@ -230,13 +231,13 @@ class PowerMitten::Task
     rss = nil
 
     description = {
-      group:    @group,
-      hostname: hostname,
-      klass:    DRb::DRbObject.new(self.class),
-      pid:      $$,
+      RSS:                resident_set_size,
+      group:              @group,
+      hostname:           hostname,
+      klass:              DRb::DRbObject.new(self.class),
+      openstack_requests: open_stack.request_count,
+      pid:                $$,
     }
-
-    description[:RSS] = rss if rss = resident_set_size
 
     yield description if block_given?
 

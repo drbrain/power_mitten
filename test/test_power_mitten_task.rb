@@ -26,18 +26,20 @@ class TestPowerMittenTask < PowerMitten::TestCase
 
   def test_class_column_descriptions
     expected = [
-      [:pid,      'PID',      '%5d', 5],
-      [:hostname, 'Hostname', '%s',  0],
-      [:RSS,      'RSS KB',   '%8d', 8],
+      [:pid,                'PID',      '%5d', 5],
+      [:hostname,           'Hostname', '%s',  0],
+      [:openstack_requests, 'OS Reqs',  '%d',  0],
+      [:RSS,                'RSS KB',   '%8d', 8],
     ]
 
     assert_equal expected, PowerMitten::Task.column_descriptions
 
     expected = [
-      [:pid,      'PID',      '%5d', 5],
-      [:hostname, 'Hostname', '%s',  0],
-      [:RSS,      'RSS KB',   '%8d', 8],
-      [:test,     'Test',     '%4d', 4],
+      [:pid,                'PID',      '%5d', 5],
+      [:hostname,           'Hostname', '%s',  0],
+      [:openstack_requests, 'OS Reqs',  '%d',  0],
+      [:RSS,                'RSS KB',   '%8d', 8],
+      [:test,               'Test',     '%4d', 4],
     ]
 
     assert_equal expected, @TT.column_descriptions
@@ -60,19 +62,19 @@ class TestPowerMittenTask < PowerMitten::TestCase
   end
 
   def test_class_label_descriptions
-    assert_equal [:pid, :hostname, :RSS],
+    assert_equal [:pid, :hostname, :openstack_requests, :RSS],
                  PowerMitten::Task.label_descriptions.keys
 
-    assert_equal [:pid, :hostname, :RSS, :test],
+    assert_equal [:pid, :hostname, :openstack_requests, :RSS, :test],
                  @TT.label_descriptions.keys
   end
 
   def test_class_label_order
-    assert_equal [:pid, :hostname, :RSS], PowerMitten::Task.label_order
-    assert_equal [:pid, :hostname, :RSS], PowerMitten::Console.label_order
+    default = [:pid, :hostname, :openstack_requests, :RSS]
+    assert_equal default, PowerMitten::Task.label_order
+    assert_equal default, PowerMitten::Console.label_order
 
-    assert_equal [:pid, :hostname, :RSS, :test],
-                 PowerMitten::TestCase::TestTask.label_order
+    assert_equal default + [:test], PowerMitten::TestCase::TestTask.label_order
   end
 
   def test_class_short_name
@@ -84,16 +86,16 @@ class TestPowerMittenTask < PowerMitten::TestCase
 
     rss = @task.resident_set_size
 
-    fields = [:group, :hostname, :klass, :pid]
-    fields.unshift :RSS if rss
+    fields = [:RSS, :group, :hostname, :klass, :openstack_requests, :pid]
 
     assert_equal fields, description.keys.sort
 
     assert_equal 'Mitten',                description[:group]
     assert_equal @task.hostname,          description[:hostname]
     assert_equal DRb::DRbObject.new(@TT), description[:klass]
+    assert_equal 0,                       description[:openstack_requests]
     assert_equal $$,                      description[:pid]
-    assert_kind_of Integer,               description[:RSS] if rss
+    assert_kind_of Integer,               description[:RSS]
   end
 
   def test_fork_child
