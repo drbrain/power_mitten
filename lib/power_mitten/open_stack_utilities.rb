@@ -14,10 +14,10 @@ module PowerMitten::OpenStackUtilities
   end
 
   ##
-  # Returns the name of this task's VM
+  # Returns the hostname of this task's VM
 
   def local_name
-    local_server.name
+    Socket.gethostname
   end
 
   ##
